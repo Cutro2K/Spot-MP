@@ -1,0 +1,13 @@
+[package]
+name = "spot-mp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+librespot = "0.8.0"
+rodio = "0.22.2"
+vergen-gitcl = "=1.0.8"
+vergen = "=9.0.6"
+vergen-lib = "=0.1.6"
+tokio = { version = "1.53.0", features = ["full"] }
+sqlite = "0.37.0"

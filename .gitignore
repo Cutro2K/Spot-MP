@@ -1,0 +1,15 @@
+# Archivos de Base de Datos
+*.db
+spot-mp/spot_mp.db
+spot-mp/data.db
+
+# Caché de imágenes de Spot-MP
+cache/
+spot-mp/cache/
+
+# Rust y Cargo (Información externa a las fuentes)
+spot-mp/target/
+/target/
+spot-mp/Cargo.lock
+# Credenciales de Spotify (Información externa a las fuentes)
+.env
