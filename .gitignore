@@ -1,15 +1,33 @@
-# Archivos de Base de Datos
+# 🦀 Rust Compilation
+/spot-mp/target/
+**/*.rs.bk
+
+# 🎵 Local files of Spot-MP
+/spot-mp/assets/cache/
+
+# 🗄️ Data Bases and states
 *.db
-spot-mp/spot_mp.db
-spot-mp/data.db
 
-# Caché de imágenes de Spot-MP
-cache/
-spot-mp/cache/
-
-# Rust y Cargo (Información externa a las fuentes)
-spot-mp/target/
-/target/
-spot-mp/Cargo.lock
-# Credenciales de Spotify (Información externa a las fuentes)
+# 🔐 Env
 .env
+.env.*
+*.pem
+*.key
+
+# 💻 OS Files
+
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# 📝 Editor Files (Neovim)
+
+*.swp
+*.swo
+*~
+Session.vim
+

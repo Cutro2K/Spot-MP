@@ -1,21 +1,22 @@
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct LocalSongData {
     pub file_direction: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SpotifySongData {
     pub spotify_id: String,
 }
 
 #[allow(dead_code)]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum SongOrigin {
     Local(LocalSongData),
     Spotify(SpotifySongData),
 }
 
 #[allow(dead_code)]
+#[derive(Debug)]
 pub struct Song {
     id_song: Option<i64>,
     song_name: String,
