@@ -1,0 +1,107 @@
+use std::{io};
+use keyring;
+use sqlite;
+use audiotags;
+use reqwest;    
+use url::ParseError;
+use std::fmt;
+
+#[derive(Debug)]
+pub enum SpotMpError {
+    // General:
+    Error(String),
+    // --- Data & Storage ---
+    // keyring Errors used in data_storage/auth_storage.rs
+    Keyring(keyring::Error), 
+    KeyringV1(keyring::v1::Error),
+    
+    // Data base errors used in data_storage/db_controller.rs
+    SQLite(sqlite::Error),
+
+    // Audiotags error used in data_storage/file_manager.rs
+    AudioTag(audiotags::Error),
+    
+    // I/O errors used in general
+    Io(std::io::Error),
+    
+    // --- Spotify API ---
+    // auth_callback_server.rs errors
+    // is responsible for setting up a server to receive the OAuth callback
+    TimeoutTCP(), // Timeout 2 minutes
+    AuthDenied(), // Authentication Denied (User press Denied)
+
+    // reqwest Error used in spotify_api_client.rs
+    Reqwest(reqwest::Error),
+    UrlParseError(ParseError),
+    
+    // Spotify API reqwest:
+    SpotifyErrorStatus(Status),
+}
+
+#[derive(Debug)]
+pub enum Status {
+    BadRequest(String), // 400: The request could not be understood.
+    Unauthorized(String), // 401: The request requires user authentication or authorization has been refused for those credentials.
+    TooManyRequest(String), // 429: Rate limit of spotify calls.
+    Unknown(u16, String), // 403, 500, 502, etc.
+}
+
+impl fmt::Display for SpotMpError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            SpotMpError::Error(e) => write!(f, "An error ocurred: {}", e),
+            SpotMpError::Keyring(e) => write!(f, "Keyring error: {}", e),
+            SpotMpError::KeyringV1(e) => write!(f, "Keyring V1 error: {}", e),
+            SpotMpError::SQLite(e) => write!(f, "Data Base error: {}", e),
+            SpotMpError::AudioTag(e) => write!(f, "Audio tag error: {}", e),
+            SpotMpError::Io(e) => write!(f, "I/O error: {}", e),
+            SpotMpError::TimeoutTCP() => write!(f, "Timeout in TCP Listener on the authorization callback"),
+            SpotMpError::AuthDenied() => write!(f, "Authorization deiend"),
+            SpotMpError::Reqwest(e) => write!(f, "Error in Reqwest crate: {}", e),
+            SpotMpError::UrlParseError(e) => write!(f, "Error parsing the url: {}", e),
+            SpotMpError::SpotifyErrorStatus(Status::BadRequest(t)) => write!(f, "The request could not be understood. Response: {}", t),
+            SpotMpError::SpotifyErrorStatus(Status::Unauthorized(t)) => write!(f, "The authentication has expired or you need more credentials. Response: {}", t),
+            SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(t)) => write!(f, "API calls rate limit have been surpassed. Response: {}", t),
+            SpotMpError::SpotifyErrorStatus(Status::Unknown(n, t)) => write!(f, "Unexpected Spotify API error (Code: {}). Response: {}", n, t),
+        }
+    }
+}
+
+impl std::error::Error for SpotMpError {}
+
+impl From<keyring::Error> for SpotMpError {
+    fn from(error: keyring::Error) -> Self {
+        SpotMpError::Keyring(error)
+    }
+}
+
+impl From<sqlite::Error> for SpotMpError {
+    fn from(error: sqlite::Error) -> Self {
+        SpotMpError::SQLite(error)
+    }
+}
+
+impl From<std::io::Error> for SpotMpError {
+    fn from(error: io::Error) -> Self {
+        SpotMpError::Io(error)
+    }
+}
+
+impl From<audiotags::Error> for SpotMpError {
+    fn from(error: audiotags::Error) -> Self {
+        SpotMpError::AudioTag(error)
+    }
+}
+
+impl From<reqwest::Error> for SpotMpError {
+    fn from(error: reqwest::Error) -> Self {
+        SpotMpError::Reqwest(error)
+    }
+}
+
+impl From<ParseError> for SpotMpError {
+    fn from(error: ParseError) -> Self {
+        SpotMpError::UrlParseError(error)
+    }
+}
+

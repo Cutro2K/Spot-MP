@@ -1,6 +1,7 @@
 use std::{env, fs, io, path::Path};
 use audiotags::{Tag};
 use crate::domain::song::{LocalSongData, Song, SongOrigin};
+use crate::domain::spot_mp_errors::SpotMpError;
 
 #[allow(dead_code)]
 pub struct FileManager {
@@ -62,7 +63,7 @@ impl FileManager {
         file_path.exists()
     }
 
-    pub fn get_local_songs(&self) -> Result<Vec<Song>, audiotags::Error> {
+    pub fn get_local_songs(&self) -> Result<Vec<Song>, SpotMpError> {
            let mut songs: Vec<Song> = Vec::new();
            
            for song in fs::read_dir(self.song_folder())? {

@@ -1,23 +1,24 @@
-use keyring::{Entry, v1};
+use keyring::{Entry};
+use crate::domain::spot_mp_errors::SpotMpError;
 
 pub struct AuthStorage {
     entry: Entry,
 }
 
 impl AuthStorage {
-    pub fn new(service_name: &str, user_name: &str) -> Result<Self, keyring::Error> {
+    pub fn new(service_name: &str, user_name: &str) -> Result<Self, SpotMpError> {
         let entry = Entry::new(service_name, user_name)?; 
         Ok(AuthStorage {entry})
     }
 
-    pub fn get_refresh_token(&self) -> Result<String, v1::Error>{
-        self.entry.get_password()
+    pub fn get_refresh_token(&self) -> Result<String, SpotMpError>{
+        Ok(self.entry.get_password()?)
     }
-    pub fn save_refresh_token(&self, token: String) -> Result<(), v1::Error>{
-        self.entry.set_password(&token)
+    pub fn save_refresh_token(&self, token: String) -> Result<(), SpotMpError>{
+        Ok(self.entry.set_password(&token)?)
     }
-    pub fn delete_refresh_token(&self) -> Result<(), v1::Error>{
-        self.entry.delete_credential()
+    pub fn delete_refresh_token(&self) -> Result<(), SpotMpError>{
+        Ok(self.entry.delete_credential()?)
     }
     
 }

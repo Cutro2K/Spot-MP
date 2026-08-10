@@ -14,3 +14,8 @@ sqlite = "0.37.0"
 audiotags = "0.5.0"
 keyring = "4.1.5"
 keyring-core = "1.0.0"
+pkce = "0.2.0"
+reqwest = { version = "0.13.4", features = ["form", "json"] }
+serde = { version = "1.0.229", features = ["derive"] }
+webbrowser = "1.2.3"
+url = "2.5.8"

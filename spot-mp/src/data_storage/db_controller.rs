@@ -1,3 +1,4 @@
+use crate::domain::spot_mp_errors::SpotMpError;
 use sqlite::{Connection, Error};
 use crate::domain::{playlist::{LocalPlaylistData, Playlist, PlaylistOrigin}, song::{LocalSongData, Song, SongOrigin, SpotifySongData}};
 
@@ -8,7 +9,7 @@ pub struct DBController {
 impl DBController {
     // --- Usefull Functions --- 
     // Check playlist existance 
-    fn check_playlist_existance(&self, playlist_id: i64) -> Result<bool, sqlite::Error> {
+    fn check_playlist_existance(&self, playlist_id: i64) -> Result<bool, SpotMpError> {
 
         let query = "SELECT 1 FROM Playlist WHERE ID_playlist = (?);";
 
@@ -64,7 +65,7 @@ impl DBController {
 
     // --- Function 2: create_playlist ---
     // This function create a new playlist, save it in the database and then return the playlist_id
-    pub fn create_playlist(&self, name: &str) -> Result<i64, Error>{
+    pub fn create_playlist(&self, name: &str) -> Result<i64, SpotMpError>{
         
         let query = "INSERT INTO Playlist (Playlist_name) VALUES (?) RETURNING ID_playlist;";
         
@@ -77,16 +78,16 @@ impl DBController {
             Ok(new_id)
         }
         else {
-            Err(sqlite::Error {
+            Err(SpotMpError::SQLite(sqlite::Error {
                 code: None,
                 message: Some("Could not retrieve the ID of the new playlist".to_string()),
-            })
+            }))
         }
     }
 
     // --- Function 3: delete_playlist ---
     // This function delete a playlist from the database
-    pub fn delete_playlist(&self, playlist_id: i64) -> Result<(), sqlite::Error>{       
+    pub fn delete_playlist(&self, playlist_id: i64) -> Result<(), SpotMpError>{       
         
         let query = "DELETE FROM Playlist WHERE ID_playlist = (?);";
         
@@ -98,23 +99,23 @@ impl DBController {
             Ok(())
         }
         else {
-            Err(sqlite::Error {
+            Err(SpotMpError::SQLite(sqlite::Error {
                 code: None,
                 message: Some(format!("Could not delete the playlist with {playlist_id} ID.")),
-            })
+            }))
         }
     }
 
     // --- Function 4: add_song_to_playlist --- 
     // This function add a song to a playlist
-    pub fn add_song_to_playlist(&self, playlist_id: i64, song: Song) -> Result<i64, sqlite::Error> {
+    pub fn add_song_to_playlist(&self, playlist_id: i64, song: Song) -> Result<i64, SpotMpError> {
         
         // Checking the existance of the playlist: 
         if !self.check_playlist_existance(playlist_id).unwrap() {
-            return Err( sqlite::Error {
+            return Err( SpotMpError::SQLite(sqlite::Error {
                 code: None,
                 message: Some(format!("The playlist with {playlist_id} ID doesn't exist.")),
-            })
+            }))
         }
        
         // --- Query 1: Adding the song to the databas if it necesary --- 
@@ -154,10 +155,10 @@ impl DBController {
             song_id = song_statement.read::<i64, _>(0)?;
         }
         else {
-            return Err(sqlite::Error {
+            return Err(SpotMpError::SQLite(sqlite::Error {
                 code: None,
                 message: Some("Failed to retrieve the generated ID_song".to_string()),
-            });
+            }));
         }
         
         // --- Query 2: Link to a playlist ---
@@ -173,16 +174,16 @@ impl DBController {
             Ok(song_id)
         }
         else {
-            Err(sqlite::Error {
+            Err(SpotMpError::SQLite(sqlite::Error {
                 code: None,
                 message: Some("Failed to link the song to the playlist".to_string())
-            })  
+            }))
         }
     }
 
     // --- Function 5: get_playlists --- 
     // get all the playlist and songs from the database 
-    pub fn get_playlists(&self) -> Result<Vec<Playlist>, sqlite::Error> {
+    pub fn get_playlists(&self) -> Result<Vec<Playlist>, SpotMpError> {
 
         // --- Step 1: Get all the playlist from the database and iterate over them ---
         let playlist_query = "SELECT ID_playlist, Playlist_name FROM Playlist;";
@@ -211,7 +212,7 @@ impl DBController {
         Ok(playlists)
     }
 
-    fn get_songs_from_playlists(&self, playlist_id: i64) -> Result<Vec<Song>, sqlite::Error> {
+    fn get_songs_from_playlists(&self, playlist_id: i64) -> Result<Vec<Song>, SpotMpError> {
         let mut songs: Vec<Song> = Vec::new();
         
         // Preparing the join for fetching the  songs
