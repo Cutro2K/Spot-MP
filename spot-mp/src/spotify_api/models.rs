@@ -34,8 +34,8 @@ pub struct Owner {
 #[derive(Deserialize, Debug)]
 pub struct Image {
     pub url: String,
-    pub height: i32,
-    pub width: i32,
+    pub height: Option<i32>,
+    pub width: Option<i32>,
 } 
 
 // --  Get Playlist Songs --

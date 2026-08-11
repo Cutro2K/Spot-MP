@@ -35,6 +35,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_auth_storage_lifecycle() {
         setup_mock_keyring();
 

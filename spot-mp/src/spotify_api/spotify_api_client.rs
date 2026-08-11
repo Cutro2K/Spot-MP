@@ -2,6 +2,7 @@ use reqwest::{Client};
 use std::{collections::HashMap};
 use webbrowser;
 use futures::future::try_join_all;
+use futures::try_join;
 use crate::spotify_api::models::{GetALbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SpotifyTokenResponse};
 use crate::domain::song::{Song, SongOrigin, SpotifySongData};
 use crate::domain::playlist::{Playlist, PlaylistOrigin, SpotifyPlaylistData};
@@ -44,9 +45,11 @@ impl SpotifyApiClient {
     async fn get_playlist_tracks(&self, playlist_id: &str) -> Result<Vec<Song>, SpotMpError> {
         let mut result: Vec<Song> = Vec::new();
         let mut next_url = Some(format!("https://api.spotify.com/v1/playlists/{}/items?limit=50", playlist_id));
-        
+        let token = self.access_token.as_ref().expect("The accesse token is missing!");
+
         while let Some(url) = next_url {
-            let response = self.client.get(&url).send().await?;
+            
+            let response = self.client.get(&url).bearer_auth(token).send().await?;
             let status = response.status();
             
             if status.is_success() {
@@ -83,9 +86,10 @@ impl SpotifyApiClient {
     async fn get_album_tracks(&self, album_id: &str, img_path: String) -> Result<Vec<Song>, SpotMpError> {
         let mut result: Vec<Song> = Vec::new();
         let mut next_url = Some(format!("https://api.spotify.com/v1/playlists/{}/items?limit=50", album_id));
-        
+        let token = self.access_token.as_ref().expect("The accesse token is missing!");
+
         while let Some(url) = next_url {
-            let response = self.client.get(&url).send().await?;
+            let response = self.client.get(&url).bearer_auth(token).send().await?;
             let status = response.status();
 
             if status.is_success() {
@@ -119,11 +123,11 @@ impl SpotifyApiClient {
     // -- Import Liked Playlist --
     async fn import_liked_playlist(&self, client_id: String) -> Result<Vec<Playlist>, SpotMpError> {
         let mut result: Vec<Playlist> = Vec::new();
-    
         let mut next_url = Some("https://api.spotify.com/v1/me/playlists?limit=50".to_string());    
-    
+        let token = self.access_token.as_ref().expect("The accesse token is missing!");
+
         while let Some(url) = next_url {
-            let response = self.client.get(&url).send().await?;
+            let response = self.client.get(&url).bearer_auth(token).send().await?;
             let status = response.status();
             
             if status.is_success() {
@@ -160,6 +164,10 @@ impl SpotifyApiClient {
                 return match status_code {
                     400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
                     401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+                    410 => {
+                        println!("Warning: Spotify devolvió 410 Gone. El álbum/playlist fue eliminado por el artista. Ignorando...");
+                        Ok(Vec::new()) 
+                    },
                     429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
                     _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
                 };
@@ -171,11 +179,11 @@ impl SpotifyApiClient {
     // -- Import Liked Albums --
     async fn import_liked_albums(&self) -> Result<Vec<Playlist>, SpotMpError> {
         let mut result: Vec<Playlist> = Vec::new();
-    
         let mut next_url = Some("https://api.spotify.com/v1/me/album?limit=50".to_string());    
-    
+        let token = self.access_token.as_ref().expect("The accesse token is missing!");
+
         while let Some(url) = next_url {
-            let response = self.client.get(&url).send().await?;
+            let response = self.client.get(&url).bearer_auth(token).send().await?;
             let status = response.status();
 
             if status.is_success() {
@@ -210,6 +218,10 @@ impl SpotifyApiClient {
                 return match status_code {
                     400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
                     401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+                    410 => {
+                        println!("Warning: Spotify devolvió 410 Gone. El álbum/playlist fue eliminado por el artista. Ignorando...");
+                        Ok(Vec::new()) 
+                    },
                     429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
                     _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
                 };
@@ -323,9 +335,18 @@ impl SpotifyApiClient {
         }
     }
     
-    // --- Function 3: Import Playlists ---
-    
+    // --- Function 3: Import Albums and Playlists ---
+    pub async fn import_liked_albums_and_playlist(&self, client_id: String) -> Result<Vec<Playlist>, SpotMpError> {
+        let mut result: Vec<Playlist> = Vec::new();
+        
+        let playlists_fut = self.import_liked_playlist(client_id);
+        let albums_fut = self.import_liked_albums();
+        let (playlists, albums) = try_join!(playlists_fut, albums_fut)?;
 
+        result.extend(playlists);
+        result.extend(albums);
+        Ok(result)
+    }
     // --- Function 4: 
     
 }
@@ -346,7 +367,7 @@ mod tests {
 
         // 2. Launch the login process. 
         // The test will pause on this line waiting for your interaction in the browser.
-        let result = client.login(my_real_client_id).await;
+        let result = client.login(my_real_client_id.clone()).await;
 
         // 3. Main Assert: Ensure the result was Ok(())
         assert!(result.is_ok(), "The login process failed: {:?}", result.err());
@@ -355,6 +376,10 @@ mod tests {
         let obtained_token = client.access_token();
         assert!(obtained_token.is_some(), "Login was Ok, but the access_token is None");
         
-        println!("Test passed successfully! The obtained token starts with: {}", &obtained_token.unwrap()[0..15]);
+        let playlists = client.import_liked_albums_and_playlist(my_real_client_id).await.expect("Failed getting the user liked albums and playlists!");
+    
+        for playlist in playlists {
+            println!("{}", playlist.playlist_name());
+        }
     }
 }

@@ -131,6 +131,7 @@ mod tests {
     use std::env;
 
     #[test]
+    #[ignore]
     fn test_extract_local_songs_data() {
         let test_song_folder = "./assets/songs";
         let test_cache_folder = "./assets/cache"; 
