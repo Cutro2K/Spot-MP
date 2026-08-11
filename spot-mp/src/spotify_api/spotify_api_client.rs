@@ -1,7 +1,8 @@
 use reqwest::{Client};
 use std::{collections::HashMap};
 use webbrowser;
-use crate::spotify_api::models::{SpotifyTokenResponse, GetUserPlaylistResponse, GetPlaylistSongsResponse};
+use futures::future::try_join_all;
+use crate::spotify_api::models::{GetALbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SpotifyTokenResponse};
 use crate::domain::song::{Song, SongOrigin, SpotifySongData};
 use crate::domain::playlist::{Playlist, PlaylistOrigin, SpotifyPlaylistData};
 use crate::spotify_api::{spotify_auth::SpotifyAuth, auth_callback_server::AuthCallbackServer};
@@ -20,7 +21,7 @@ impl Default for SpotifyApiClient {
 }
 
 impl SpotifyApiClient {
-    // --- new ---
+    // --- CONSTRUCTOR ---
     pub fn new() -> Self {
         Self {
             access_token: None,
@@ -29,13 +30,196 @@ impl SpotifyApiClient {
         }
     }
     
-    // --- Getters: ---
+    // --- GETTERS ---
     pub fn access_token(&self) -> Option<String> {
         self.access_token.clone()
     }
     pub fn refresh_token(&self) -> Option<String> {
         self.refresh_token.clone()
     }
+    
+    // --- AUXILIAR FUNCIONS ---
+    
+    // -- Get playlist tracks --
+    async fn get_playlist_tracks(&self, playlist_id: &str) -> Result<Vec<Song>, SpotMpError> {
+        let mut result: Vec<Song> = Vec::new();
+        let mut next_url = Some(format!("https://api.spotify.com/v1/playlists/{}/items?limit=50", playlist_id));
+        
+        while let Some(url) = next_url {
+            let response = self.client.get(&url).send().await?;
+            let status = response.status();
+            
+            if status.is_success() {
+                let song_response = response.json::<GetPlaylistSongsResponse>().await?;
+                
+                for item in song_response.items {
+                    result.push(Song::new(
+                            None, 
+                            item.item.name, 
+                            (item.item.duration_ms/1000).into(), 
+                            item.item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png")), // I have to change this
+                            SongOrigin::Spotify(SpotifySongData {spotify_id: item.item.id})
+                            ));                   
+                }
+                next_url = song_response.next;
+
+            } else {
+                let status_code = status.as_u16();
+                let code_text = response.text().await?; 
+
+                return match status_code {
+                    400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
+                    401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+                    429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
+                    _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
+                };
+            }
+        }
+        
+        Ok(result)
+    }
+    
+    // -- Get album traks ---
+    async fn get_album_tracks(&self, album_id: &str, img_path: String) -> Result<Vec<Song>, SpotMpError> {
+        let mut result: Vec<Song> = Vec::new();
+        let mut next_url = Some(format!("https://api.spotify.com/v1/playlists/{}/items?limit=50", album_id));
+        
+        while let Some(url) = next_url {
+            let response = self.client.get(&url).send().await?;
+            let status = response.status();
+
+            if status.is_success() {
+                let song_response = response.json::<GetALbumSongsResponse>().await?;
+
+                for item in song_response.items {
+                    result.push(Song::new(
+                            None, 
+                            item.name,
+                            (item.duration_ms/1000).into(),
+                            img_path.clone(),
+                            SongOrigin::Spotify(SpotifySongData { spotify_id: item.id }),
+                    ));
+                }
+                next_url = song_response.next;
+            } else {
+                let status_code = status.as_u16();
+                let code_text = response.text().await?; 
+
+                return match status_code {
+                    400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
+                    401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+                    429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
+                    _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
+                };
+            }
+        }
+        Ok(result)
+    }
+    
+    // -- Import Liked Playlist --
+    async fn import_liked_playlist(&self, client_id: String) -> Result<Vec<Playlist>, SpotMpError> {
+        let mut result: Vec<Playlist> = Vec::new();
+    
+        let mut next_url = Some("https://api.spotify.com/v1/me/playlists?limit=50".to_string());    
+    
+        while let Some(url) = next_url {
+            let response = self.client.get(&url).send().await?;
+            let status = response.status();
+            
+            if status.is_success() {
+                let get_playlist_response = response.json::<GetUserPlaylistsResponse>().await?;
+
+                let mut future_peticions = Vec::new();
+
+                for item in get_playlist_response.items {
+                    let name = item.name.clone();
+                    let is_modifiable = item.collaborative || item.owner.id == client_id;
+                    let playlist_id = item.id;
+
+                    future_peticions.push( async move {
+                        let songs = self.get_playlist_tracks(&playlist_id).await?;
+
+                        Ok::<Playlist, SpotMpError>(Playlist::new(
+                                songs, 
+                                is_modifiable, 
+                                name, 
+                                PlaylistOrigin::Spotify(SpotifyPlaylistData { id_playlist: playlist_id })
+                        ))
+                    });
+                }
+                
+                // Start the concurrency execution 
+                let proccesed_playlist = try_join_all(future_peticions).await?;
+                result.extend(proccesed_playlist);
+
+                next_url = get_playlist_response.next;
+            } else {
+                let status_code = status.as_u16();
+                let code_text = response.text().await?; 
+
+                return match status_code {
+                    400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
+                    401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+                    429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
+                    _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
+                };
+            }
+        }
+
+        Ok(result)
+    }
+    // -- Import Liked Albums --
+    async fn import_liked_albums(&self) -> Result<Vec<Playlist>, SpotMpError> {
+        let mut result: Vec<Playlist> = Vec::new();
+    
+        let mut next_url = Some("https://api.spotify.com/v1/me/album?limit=50".to_string());    
+    
+        while let Some(url) = next_url {
+            let response = self.client.get(&url).send().await?;
+            let status = response.status();
+
+            if status.is_success() {
+                let get_album_response = response.json::<GetUserAlbumsRespose>().await?;                
+                let mut future_peticions = Vec::new();
+
+                for item in get_album_response.items {
+                    let name = item.name.clone();
+                    let album_id = item.id;
+                    let img_path = item.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png"));
+
+                    future_peticions.push( async move {
+                        let songs = self.get_album_tracks(&album_id, img_path).await?;
+
+                        Ok::<Playlist, SpotMpError>(Playlist::new( 
+                                songs, 
+                                false, 
+                                name, 
+                                PlaylistOrigin::Spotify(SpotifyPlaylistData { id_playlist: album_id })
+                        ))
+                    });
+                }
+
+                let processed_playlist = try_join_all(future_peticions).await?;
+                result.extend(processed_playlist);
+
+                next_url = get_album_response.next;
+            } else {
+                let status_code = status.as_u16();
+                let code_text = response.text().await?; 
+
+                return match status_code {
+                    400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
+                    401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+                    429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
+                    _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
+                };
+            }
+        }
+
+        Ok(result)
+    }
+
+    // --- MAIN FUNCTIONALITY ---
 
     // --- Function 1: Login in Spotify to get tokens --- 
     pub async fn login(&mut self, client_id: String) -> Result<String, SpotMpError> {
@@ -125,7 +309,7 @@ impl SpotifyApiClient {
                 self.refresh_token = Some(new_refresh);
             }
 
-            Ok(self.refresh_token.clone().expect("Can not retrieve the refresh token value after login!")) // This value is returned for saving the token in auth_storage.rs
+            Ok(self.refresh_token.clone().expect("Can not retrieve the refresh token value after refresh!")) // This value is returned for saving the token in auth_storage.rs
         }
         else {
             let status_code = response.status().as_u16();
@@ -140,82 +324,10 @@ impl SpotifyApiClient {
     }
     
     // --- Function 3: Import Playlists ---
-    pub async fn import_playlist(&self, client_id: String) -> Result<Vec<Playlist>, SpotMpError> {
-        let mut result: Vec<Playlist> = Vec::new();
     
-        let mut next_url = Some("https://api.spotify.com/v1/me/playlists?limit=50".to_string());    
+
+    // --- Function 4: 
     
-        while let Some(url) = next_url {
-            let response = self.client.get(&url).send().await?;
-            let status = response.status();
-
-            if status.is_success() {
-                let get_playlist_response = response.json::<GetUserPlaylistResponse>().await?;
-    
-                for item in get_playlist_response.items {
-                    result.push(Playlist::new(
-                        self.get_playlist_songs(item.playlist_id.clone()).await?,
-                        item.collaborative || item.owner.id == client_id,
-                        item.name,
-                        PlaylistOrigin::Spotify(SpotifyPlaylistData { id_playlist: item.playlist_id }),
-                    ));
-                }
-
-                next_url = get_playlist_response.next;
-            } else {
-                let status_code = status.as_u16();
-                let code_text = response.text().await?; 
-
-                return match status_code {
-                    400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
-                    401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
-                    429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
-                    _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
-                };
-            }
-        }
-
-        Ok(result)
-    }
-
-    // -- Auxiliar Function: Get playlist songs --
-    async fn get_playlist_songs(&self, playlist_id: String) -> Result<Vec<Song>, SpotMpError> {
-        let mut result: Vec<Song> = Vec::new();
-        let mut next_url = Some(format!("https://api.spotify.com/v1/playlists/{}/items?limit=50", playlist_id));
-        
-        while let Some(url) = next_url {
-            let response = self.client.get(&url).send().await?;
-            let status = response.status();
-            
-            if status.is_success() {
-                let song_response = response.json::<GetPlaylistSongsResponse>().await?;
-                
-                for item in song_response.items {
-                    result.push(Song::new(
-                            None, 
-                            item.item.name, 
-                            (item.item.duration_ms/1000).into(), 
-                            item.item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("ruta/a/tu/broken-image.png")), 
-                            SongOrigin::Spotify(SpotifySongData {spotify_id: item.item.id})
-                            ));                   
-                }
-                next_url = song_response.next;
-
-            } else {
-                let status_code = status.as_u16();
-                let code_text = response.text().await?; 
-
-                return match status_code {
-                    400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
-                    401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
-                    429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
-                    _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
-                };
-            }
-        }
-        
-        Ok(result)
-    }
 }
 
 #[cfg(test)]
