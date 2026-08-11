@@ -3,7 +3,6 @@ use audiotags::{Tag};
 use crate::domain::song::{LocalSongData, Song, SongOrigin};
 use crate::domain::spot_mp_errors::SpotMpError;
 
-#[allow(dead_code)]
 pub struct FileManager {
     song_folder: String,
     cache_folder: String,
@@ -131,7 +130,6 @@ mod tests {
     use std::env;
 
     #[test]
-    #[ignore]
     fn test_extract_local_songs_data() {
         let test_song_folder = "./assets/songs";
         let test_cache_folder = "./assets/cache"; 

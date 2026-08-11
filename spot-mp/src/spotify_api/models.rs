@@ -67,11 +67,15 @@ pub struct AlbumItem {
 #[derive(Deserialize, Debug)]
 pub struct GetUserAlbumsRespose {
     pub next: Option<String>,
-    pub items: Vec<AlbumItem>
+    pub items: Vec<SavedAlbumObject>
+}
+#[derive(Deserialize, Debug)]
+pub struct SavedAlbumObject {
+    pub album: AlbumItem,
 }
 // -- Get Album Songs --
 #[derive(Deserialize, Debug)]
-pub struct GetALbumSongsResponse {
+pub struct GetAlbumSongsResponse {
     pub next: Option<String>,
     pub items: Vec<AlbumTrackItem>,
 }

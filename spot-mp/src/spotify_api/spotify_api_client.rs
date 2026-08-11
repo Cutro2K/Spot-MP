@@ -3,7 +3,7 @@ use std::{collections::HashMap};
 use webbrowser;
 use futures::future::try_join_all;
 use futures::try_join;
-use crate::spotify_api::models::{GetALbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SpotifyTokenResponse};
+use crate::spotify_api::models::{GetAlbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SpotifyTokenResponse};
 use crate::domain::song::{Song, SongOrigin, SpotifySongData};
 use crate::domain::playlist::{Playlist, PlaylistOrigin, SpotifyPlaylistData};
 use crate::spotify_api::{spotify_auth::SpotifyAuth, auth_callback_server::AuthCallbackServer};
@@ -85,7 +85,7 @@ impl SpotifyApiClient {
     // -- Get album traks ---
     async fn get_album_tracks(&self, album_id: &str, img_path: String) -> Result<Vec<Song>, SpotMpError> {
         let mut result: Vec<Song> = Vec::new();
-        let mut next_url = Some(format!("https://api.spotify.com/v1/playlists/{}/items?limit=50", album_id));
+        let mut next_url = Some(format!("https://api.spotify.com/v1/albums/{}/tracks?limit=50", album_id));
         let token = self.access_token.as_ref().expect("The accesse token is missing!");
 
         while let Some(url) = next_url {
@@ -93,7 +93,7 @@ impl SpotifyApiClient {
             let status = response.status();
 
             if status.is_success() {
-                let song_response = response.json::<GetALbumSongsResponse>().await?;
+                let song_response = response.json::<GetAlbumSongsResponse>().await?;
 
                 for item in song_response.items {
                     result.push(Song::new(
@@ -179,7 +179,7 @@ impl SpotifyApiClient {
     // -- Import Liked Albums --
     async fn import_liked_albums(&self) -> Result<Vec<Playlist>, SpotMpError> {
         let mut result: Vec<Playlist> = Vec::new();
-        let mut next_url = Some("https://api.spotify.com/v1/me/album?limit=50".to_string());    
+        let mut next_url = Some("https://api.spotify.com/v1/me/albums?limit=50".to_string());    
         let token = self.access_token.as_ref().expect("The accesse token is missing!");
 
         while let Some(url) = next_url {
@@ -191,9 +191,9 @@ impl SpotifyApiClient {
                 let mut future_peticions = Vec::new();
 
                 for item in get_album_response.items {
-                    let name = item.name.clone();
-                    let album_id = item.id;
-                    let img_path = item.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png"));
+                    let name = item.album.name.clone();
+                    let album_id = item.album.id;
+                    let img_path = item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png"));
 
                     future_peticions.push( async move {
                         let songs = self.get_album_tracks(&album_id, img_path).await?;
