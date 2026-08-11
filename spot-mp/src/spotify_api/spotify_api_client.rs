@@ -375,6 +375,9 @@ mod tests {
         // 4. State Assert: Check that the tokens were actually saved in the instance
         let obtained_token = client.access_token();
         assert!(obtained_token.is_some(), "Login was Ok, but the access_token is None");
+
+        let playlists_result = client.import_playlist(&my_real_client_id).await;
+        assert!(playlists_result.is_ok(), "The import_playlist function failed: {:?}", playlists_result.err());
         
         let playlists = client.import_liked_albums_and_playlist(my_real_client_id).await.expect("Failed getting the user liked albums and playlists!");
     
