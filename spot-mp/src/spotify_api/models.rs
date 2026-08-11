@@ -22,7 +22,7 @@ pub struct GetUserPlaylistResponse {
 #[derive(Deserialize, Debug)]
 pub struct PlaylistItem {
     pub collaborative: bool,
-    pub playlist_id: String, 
+    pub id: String, 
     pub images: Vec<Image>,
     pub owner: Owner,
     pub name: String,
@@ -34,8 +34,8 @@ pub struct Owner {
 #[derive(Deserialize, Debug)]
 pub struct Image {
     pub url: String,
-    pub height: i32,
-    pub width: i32,
+    pub height: Option<i32>,
+    pub width: Option<i32>,
 } 
 
 // --  Get Playlist Song --
