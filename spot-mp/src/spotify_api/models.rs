@@ -13,9 +13,9 @@ pub struct SpotifyTokenResponse {
 
 // --- API Responses ---
 
-// -- Import playlist function response ---
+// -- Import Playlist Function Response ---
 #[derive(Deserialize, Debug)]
-pub struct GetUserPlaylistResponse {
+pub struct GetUserPlaylistsResponse {
     pub next: Option<String>,
     pub items: Vec<PlaylistItem>,
 }
@@ -38,19 +38,19 @@ pub struct Image {
     pub width: Option<i32>,
 } 
 
-// --  Get Playlist Song --
+// --  Get Playlist Songs --
 
 #[derive(Deserialize, Debug)]
-pub struct GetPlaylistSongsResponse {
+pub struct GetPlaylistSongsResponse { 
     pub next: Option<String>,
-    pub items: Vec<SongItem>,
+    pub items: Vec<PlaylistSongItem>,
 }
 #[derive(Deserialize, Debug)]
-pub struct SongItem {
-    pub item: TrackItem,
+pub struct PlaylistSongItem { // Each one of this it's a track added to a playlist
+    pub item: PlaylistTrackItem,
 }
 #[derive(Deserialize, Debug)]
-pub struct TrackItem {
+pub struct PlaylistTrackItem { // Each one of this is a single track from a  playlist
     pub name: String,
     pub duration_ms: i32,
     pub id: String,
@@ -58,5 +58,30 @@ pub struct TrackItem {
 }
 #[derive(Deserialize, Debug)]
 pub struct AlbumItem {
+    pub id: String,
+    pub name: String, 
     pub images: Vec<Image>,
+}
+
+// --- Import Album Function Response ---
+#[derive(Deserialize, Debug)]
+pub struct GetUserAlbumsRespose {
+    pub next: Option<String>,
+    pub items: Vec<SavedAlbumObject>
+}
+#[derive(Deserialize, Debug)]
+pub struct SavedAlbumObject {
+    pub album: AlbumItem,
+}
+// -- Get Album Songs --
+#[derive(Deserialize, Debug)]
+pub struct GetAlbumSongsResponse {
+    pub next: Option<String>,
+    pub items: Vec<AlbumTrackItem>,
+}
+#[derive(Deserialize, Debug)]
+pub struct AlbumTrackItem {
+    pub name: String,
+    pub duration_ms: i32,
+    pub id: String,
 }
