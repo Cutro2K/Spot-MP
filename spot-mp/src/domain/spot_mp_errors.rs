@@ -5,12 +5,16 @@ use audiotags;
 use reqwest;    
 use url::ParseError;
 use std::fmt;
+use rodio::decoder::DecoderError;
+use rodio::source::SeekError;
+use librespot::core;
 
 #[derive(Debug)]
 pub enum SpotMpError {
-    // General:
+    /// --- General ---
     Error(String),
-    // --- Data & Storage ---
+    
+    /// --- Data & Storage ---
     // keyring Errors used in data_storage/auth_storage.rs
     Keyring(keyring::Error), 
     KeyringV1(keyring::v1::Error),
@@ -24,7 +28,7 @@ pub enum SpotMpError {
     // I/O errors used in general
     Io(std::io::Error),
     
-    // --- Spotify API ---
+    /// --- Spotify API ---
     // auth_callback_server.rs errors
     // is responsible for setting up a server to receive the OAuth callback
     TimeoutTCP(), // Timeout 2 minutes
@@ -36,6 +40,15 @@ pub enum SpotMpError {
     
     // Spotify API reqwest:
     SpotifyErrorStatus(Status),
+
+    /// --- Audio Backend ---
+    // Decoding error with rodio
+    RodioDecoderError(DecoderError),
+    // Seek error with rodio
+    RodioSeekError(SeekError),
+    // Librespot general error
+    LibrespotError(core::Error),
+    
 }
 
 #[derive(Debug)]
@@ -63,6 +76,9 @@ impl fmt::Display for SpotMpError {
             SpotMpError::SpotifyErrorStatus(Status::Unauthorized(t)) => write!(f, "The authentication has expired or you need more credentials. Response: {}", t),
             SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(t)) => write!(f, "API calls rate limit have been surpassed. Response: {}", t),
             SpotMpError::SpotifyErrorStatus(Status::Unknown(n, t)) => write!(f, "Unexpected Spotify API error (Code: {}). Response: {}", n, t),
+            SpotMpError::RodioDecoderError(e) => write!(f, "Error in Decoding with rodio: {}", e),
+            SpotMpError::RodioSeekError(e) => write!(f, "Error trying to seek the audio track: {}", e),
+            SpotMpError::LibrespotError(e) => write!(f, "Unknown error in librespot backend: {}", e),
         }
     }
 }
@@ -105,3 +121,20 @@ impl From<ParseError> for SpotMpError {
     }
 }
 
+impl From<DecoderError> for SpotMpError {
+    fn from(error: DecoderError) -> Self {
+        SpotMpError::RodioDecoderError(error)
+    }
+}
+
+impl From<SeekError> for SpotMpError {
+    fn from(error: SeekError) -> Self {
+        SpotMpError::RodioSeekError(error)
+    }
+}
+
+impl From<core::Error> for SpotMpError {
+    fn from(error: core::Error) -> Self {
+        SpotMpError::LibrespotError(error)
+    }
+}

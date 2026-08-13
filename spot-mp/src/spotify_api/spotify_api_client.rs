@@ -3,14 +3,15 @@ use std::{collections::HashMap};
 use webbrowser;
 use futures::future::try_join_all;
 use futures::try_join;
-use crate::spotify_api::models::{GetAlbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SpotifyTokenResponse};
+use serde_json::json;
+use crate::spotify_api::models::{GetAlbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SearchSongResponse, SpotifyTokenResponse, PlaylistItem};
 use crate::domain::song::{Song, SongOrigin, SpotifySongData};
 use crate::domain::playlist::{Playlist, PlaylistOrigin, SpotifyPlaylistData};
 use crate::spotify_api::{spotify_auth::SpotifyAuth, auth_callback_server::AuthCallbackServer};
 use crate::domain::spot_mp_errors::{SpotMpError, Status};
 
 pub struct SpotifyApiClient {
-    access_token: Option<String>,
+access_token: Option<String>,
     refresh_token: Option<String>, 
     client: Client,    
 }
@@ -44,8 +45,8 @@ impl SpotifyApiClient {
     // -- Get playlist tracks --
     async fn get_playlist_tracks(&self, playlist_id: &str) -> Result<Vec<Song>, SpotMpError> {
         let mut result: Vec<Song> = Vec::new();
-        let mut next_url = Some(format!("https://api.spotify.com/v1/playlists/{}/items?limit=50", playlist_id));
-        let token = self.access_token.as_ref().expect("The accesse token is missing!");
+    let mut next_url = Some(format!("https://api.spotify.com/v1/playlists/{}/items?limit=50", playlist_id));
+        let token = self.access_token.as_ref().expect("The access token is missing!");
 
         while let Some(url) = next_url {
             
@@ -60,8 +61,8 @@ impl SpotifyApiClient {
                             None, 
                             item.item.name, 
                             (item.item.duration_ms/1000).into(), 
-                            item.item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png")), // I have to change this
-                            SongOrigin::Spotify(SpotifySongData {spotify_id: item.item.id})
+                             item.item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png")), // I have to change this
+                           SongOrigin::Spotify(SpotifySongData {spotify_id: item.item.id})
                             ));                   
                 }
                 next_url = song_response.next;
@@ -86,7 +87,7 @@ impl SpotifyApiClient {
     async fn get_album_tracks(&self, album_id: &str, img_path: String) -> Result<Vec<Song>, SpotMpError> {
         let mut result: Vec<Song> = Vec::new();
         let mut next_url = Some(format!("https://api.spotify.com/v1/albums/{}/tracks?limit=50", album_id));
-        let token = self.access_token.as_ref().expect("The accesse token is missing!");
+        let token = self.access_token.as_ref().expect("The access token is missing!");
 
         while let Some(url) = next_url {
             let response = self.client.get(&url).bearer_auth(token).send().await?;
@@ -124,7 +125,7 @@ impl SpotifyApiClient {
     async fn import_liked_playlist(&self, client_id: String) -> Result<Vec<Playlist>, SpotMpError> {
         let mut result: Vec<Playlist> = Vec::new();
         let mut next_url = Some("https://api.spotify.com/v1/me/playlists?limit=50".to_string());    
-        let token = self.access_token.as_ref().expect("The accesse token is missing!");
+        let token = self.access_token.as_ref().expect("The access token is missing!");
 
         while let Some(url) = next_url {
             let response = self.client.get(&url).bearer_auth(token).send().await?;
@@ -164,10 +165,6 @@ impl SpotifyApiClient {
                 return match status_code {
                     400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
                     401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
-                    410 => {
-                        println!("Warning: Spotify devolvió 410 Gone. El álbum/playlist fue eliminado por el artista. Ignorando...");
-                        Ok(Vec::new()) 
-                    },
                     429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
                     _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
                 };
@@ -180,7 +177,7 @@ impl SpotifyApiClient {
     async fn import_liked_albums(&self) -> Result<Vec<Playlist>, SpotMpError> {
         let mut result: Vec<Playlist> = Vec::new();
         let mut next_url = Some("https://api.spotify.com/v1/me/albums?limit=50".to_string());    
-        let token = self.access_token.as_ref().expect("The accesse token is missing!");
+        let token = self.access_token.as_ref().expect("The access token is missing!");
 
         while let Some(url) = next_url {
             let response = self.client.get(&url).bearer_auth(token).send().await?;
@@ -218,10 +215,6 @@ impl SpotifyApiClient {
                 return match status_code {
                     400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
                     401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
-                    410 => {
-                        println!("Warning: Spotify devolvió 410 Gone. El álbum/playlist fue eliminado por el artista. Ignorando...");
-                        Ok(Vec::new()) 
-                    },
                     429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
                     _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
                 };
@@ -347,8 +340,131 @@ impl SpotifyApiClient {
         result.extend(albums);
         Ok(result)
     }
-    // --- Function 4: 
     
+    // --- Function 4: Search song whit a specific query ---
+    pub async fn search_song(&self, query: String) -> Result<Vec<Song>, SpotMpError> {
+        let mut result = Vec::new();
+        let url = format!("https://api.spotify.com/v1/search?q={}&type=track&limit=6&offset=6", query);
+        let token = self.access_token.as_ref().expect("The access token is missing!");
+       
+        let response = self.client.get(&url).bearer_auth(token).send().await?;
+
+        if response.status().is_success() {
+            let search_response = response.json::<SearchSongResponse>().await?;
+            
+            for item in search_response.tracks.items {
+                result.push(Song::new(
+                    None,
+                    item.name.clone(),
+                    (item.duration_ms/1000).into(),
+                    item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png")), // I have to change this
+                    SongOrigin::Spotify(SpotifySongData { spotify_id: item.id }),
+                ));
+            }
+        }
+        else {
+            let status_code = response.status().as_u16();
+            let code_text = response.text().await?;
+            return match status_code {
+                400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
+                401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+                429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
+                _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
+            }
+        }
+        Ok(result)
+    }
+
+    // --- Function 5: Add song to an existing playlist --- 
+    pub async fn add_song_to_playlist(&self, playlist_id: &str, song_id: &str) -> Result<(), SpotMpError> {
+        let url =  format!("https://api.spotify.com/v1/playlists/{}/items", playlist_id);
+        let token = self.access_token.as_ref().expect("The access token is missing!");
+       
+        let body = json!({
+            "uris": [format!("spotify:track:{}", song_id)],
+        });
+
+        let response = self.client.post(&url).json(&body).bearer_auth(token).send().await?;
+
+        let status_code = response.status().as_u16();
+        let code_text = response.text().await?;
+     
+        match status_code {
+            201 => Ok(()),
+            400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
+            401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+            429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
+            _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
+        }
+    }
+
+    // --- Function 6: remove song to an existing playlist --- 
+    pub async fn remove_song_to_playlist(&self, playlist_id: &str, song_id: &str) -> Result<(), SpotMpError>{
+        let url = format!("https://api.spotify.com/v1/playlists/{}/items", playlist_id);
+        let token = self.access_token.as_ref().expect("The access token is missing!");
+        
+        let body = json!({
+            "items": [
+                {
+                    "uri": format!("spotify:track:{}", song_id),
+                }
+            ]
+        });
+        
+        let response = self.client.delete(&url).json(&body).bearer_auth(token).send().await?;
+        
+        let status_code = response.status().as_u16();
+        let code_text = response.text().await?;
+
+        match status_code {
+            200 => Ok(()),
+            400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
+            401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+            429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
+            _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
+        }
+    }
+
+    // --- Function 7: create playlist whit an optional song ---
+    pub async fn create_playlist(&self, playlist_name: &str, public: bool, song_to_add: Option<&str>) -> Result<Playlist, SpotMpError> {
+        let url = "https://api.spotify.com/v1/me/playlists";
+        let token = self.access_token.as_ref().expect("The access token is missing!");
+    
+        let body = json!({
+            "name": playlist_name,
+            "public": public,
+        });
+        
+        let response = self.client.post(url).json(&body).bearer_auth(token).send().await?;
+        
+        if response.status().is_success() {
+            let playlist_response = response.json::<PlaylistItem>().await?;
+            
+            let new_playlist = Playlist::new(
+                Vec::new(),
+                true, 
+                playlist_response.name, 
+                PlaylistOrigin::Spotify(SpotifyPlaylistData { id_playlist: playlist_response.id })
+            );
+            
+            if let Some(song_id) = song_to_add {
+                self.add_song_to_playlist(&new_playlist.id_playlist(), song_id).await?;
+            }
+            
+            Ok(new_playlist)
+        } 
+        else {
+            let status_code = response.status().as_u16();
+            let code_text = response.text().await?;
+            
+            match status_code {
+                400 => Err(SpotMpError::SpotifyErrorStatus(Status::BadRequest(code_text))),
+                401 => Err(SpotMpError::SpotifyErrorStatus(Status::Unauthorized(code_text))),
+                429 => Err(SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(code_text))),
+                _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -356,7 +472,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_login_real_interactive() {
+    async fn test_spotify_client_full_funcionalities() {
         // 1.Instantiate the client using the method you defined
         let mut client = SpotifyApiClient::new();
         
@@ -375,14 +491,20 @@ mod tests {
         // 4. State Assert: Check that the tokens were actually saved in the instance
         let obtained_token = client.access_token();
         assert!(obtained_token.is_some(), "Login was Ok, but the access_token is None");
-
-        let playlists_result = client.import_playlist(&my_real_client_id).await;
-        assert!(playlists_result.is_ok(), "The import_playlist function failed: {:?}", playlists_result.err());
         
-        let playlists = client.import_liked_albums_and_playlist(my_real_client_id).await.expect("Failed getting the user liked albums and playlists!");
+        // Testing Function 3: import liked albums and playlists
+        let playlists = client.import_liked_albums_and_playlist(my_real_client_id).await.expect("Failed in function 3 import liked albums and playlists!");
     
-        for playlist in playlists {
+        for playlist in &playlists {
             println!("{}", playlist.playlist_name());
         }
+
+        // Testing function 4: Search for songs
+        let songs = client.search_song("charly".to_string()).await.expect("Failed in function 4 search_song!");
+        
+        for song in songs {
+            println!("Name: {}, Image Path: {}", song.song_name(), song.img_path());
+        }
+
     }
 }

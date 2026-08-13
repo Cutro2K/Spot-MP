@@ -85,3 +85,22 @@ pub struct AlbumTrackItem {
     pub duration_ms: i32,
     pub id: String,
 }
+
+// --- Search Song Response --- 
+#[derive(Deserialize, Debug)]
+pub struct SearchSongResponse {
+    pub tracks: SearchTracks,    
+}
+#[derive(Deserialize, Debug)]
+pub struct SearchTracks {
+    pub next: Option<String>,
+    pub items: Vec<TrackItem>,
+}
+#[derive(Deserialize, Debug)]
+pub struct TrackItem {
+    pub name: String,
+    pub duration_ms: i32,
+    pub id: String,
+    pub album: AlbumItem,
+}
+
