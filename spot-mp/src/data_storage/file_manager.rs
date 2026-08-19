@@ -19,10 +19,10 @@ impl FileManager {
     pub fn new() -> Self {
         let home_dir = env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
         let song_fd = env::var("SPOT_MP_SONG_FOLDER").unwrap_or_else(|_| format!("{home_dir}/Music/"));
-        let cache_fd = env::var("SPOT_MP_CACHE_FOLDER").unwrap_or_else(|_| format!("{home_dir}/.spot-mp/cache/"));
+        let cache_fd = env::var("SPOT_MP_FOLDER").unwrap_or_else(|_| format!("{home_dir}/.spot-mp/"));
         
         // --- Checking cache folder existance and creating if not exist ---
-        let cache_path = Path::new(&cache_fd);
+        let cache_path = Path::new(&cache_fd).join(Path::new("cache/"));
         
         if !cache_path.exists() {
             fs::create_dir_all(cache_path).expect("Failed to try to create cache directory");
@@ -42,21 +42,21 @@ impl FileManager {
         }
     }
 
-    pub fn song_folder(&self) -> String {
-        self.song_folder.clone()
+    pub fn song_folder(&self) -> &str {
+        self.song_folder.as_ref()
     }
 
-    pub fn cache_folder(&self) -> String {
-        self.cache_folder.clone()
+    pub fn cache_folder(&self) -> &str {
+        self.cache_folder.as_ref()
     }
 
-    pub fn check_file_existence(&self, file_name: String) -> bool{
+    pub fn check_file_existence(&self, file_name: &str) -> bool{
         let folder_file_path = Path::new(&self.song_folder);
         let file_path = folder_file_path.join(file_name);
         file_path.exists()
     }
     
-    fn check_cache_existence(&self, file_name: String) -> bool {
+    fn check_cache_existence(&self, file_name: &str) -> bool {
         let folder_cache_path = Path::new(&self.cache_folder);
         let file_path = folder_cache_path.join(file_name);
         file_path.exists()
@@ -100,7 +100,7 @@ impl FileManager {
                 let song_cover_name = song_title.to_string().replace("/", "_").replace("\\", "_") + cover_extension;
                 let cover_cache_path = Path::new(&self.cache_folder()).join(&song_cover_name);
 
-                if !self.check_cache_existence(song_cover_name.clone()) {
+                if !self.check_cache_existence(&song_cover_name){
                     fs::write(&cover_cache_path, song_cover).unwrap_or_else(|_| println!("The cover doesn't save"));
                 }
         

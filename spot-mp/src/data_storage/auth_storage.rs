@@ -1,46 +1,36 @@
-use keyring::{Entry};
-use crate::domain::spot_mp_errors::SpotMpError;
+use std::{fs::{File, OpenOptions}, io::{Read, Write}, path::PathBuf};
+
+use crate::domain::{auth_models::SessionData, spot_mp_errors::SpotMpError};
 
 pub struct AuthStorage {
-    entry: Entry,
+    file_path: PathBuf,
 }
 
 impl AuthStorage {
-    pub fn new(service_name: &str, user_name: &str) -> Result<Self, SpotMpError> {
-        let entry = Entry::new(service_name, user_name)?; 
-        Ok(AuthStorage {entry})
+    pub fn new(spot_mp_folder_path: PathBuf) -> Self {
+        let file_path = spot_mp_folder_path.join("session.json");
+        Self { file_path }
     }
 
-    pub fn get_refresh_token(&self) -> Result<String, SpotMpError>{
-        Ok(self.entry.get_password()?)
-    }
-    pub fn save_refresh_token(&self, token: String) -> Result<(), SpotMpError>{
-        Ok(self.entry.set_password(&token)?)
-    }
-    pub fn delete_refresh_token(&self) -> Result<(), SpotMpError>{
-        Ok(self.entry.delete_credential()?)
-    }
-    
-}
+    pub fn load_session(&self) -> Result<SessionData, SpotMpError> {
+        if !self.file_path.exists() {
+            return Ok(SessionData::default());
+        }
 
+        let mut file = File::open(&self.file_path)?;
+        let mut content = String::new();
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use keyring_core::mock; 
-
-    fn setup_mock_keyring() {
-        let mock_store = mock::Store::new().expect("Failed to create the mock store for the keyring");
-        keyring_core::set_default_store(mock_store);
+        file.read_to_string(&mut content)?;
+        
+        Ok(serde_json::from_str(&content)?)
     }
 
-    #[test]
-    fn test_auth_storage_lifecycle() {
-        setup_mock_keyring();
+    pub fn save_session(&self, data: SessionData) -> Result<(), SpotMpError> {
+        let json_data = serde_json::to_string(&data)?;
+        
+        let mut file = OpenOptions::new().write(true).read(true).truncate(true).open(&self.file_path)?;
 
-        let _ = AuthStorage::new("spot_mp_test_service", "test_user")
-            .expect("Failed to initialice the AuthStorage");
-
-        keyring_core::unset_default_store();
+        file.write_all(json_data.as_bytes())?;
+        Ok(())
     }
 }

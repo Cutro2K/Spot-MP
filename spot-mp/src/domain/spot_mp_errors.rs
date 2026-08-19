@@ -1,13 +1,13 @@
 use std::{io};
-use keyring;
 use sqlite;
 use audiotags;
 use reqwest;    
 use url::ParseError;
-use std::fmt;
+use std::fmt::{self};
 use rodio::decoder::DecoderError;
 use rodio::source::SeekError;
 use librespot::core;
+use serde_json;
 
 #[derive(Debug)]
 pub enum SpotMpError {
@@ -15,10 +15,6 @@ pub enum SpotMpError {
     Error(String),
     
     /// --- Data & Storage ---
-    // keyring Errors used in data_storage/auth_storage.rs
-    Keyring(keyring::Error), 
-    KeyringV1(keyring::v1::Error),
-    
     // Data base errors used in data_storage/db_controller.rs
     SQLite(sqlite::Error),
 
@@ -42,13 +38,21 @@ pub enum SpotMpError {
     SpotifyErrorStatus(Status),
 
     /// --- Audio Backend ---
+    // Not initialized backend error
+    UnknownAudioBackend(String),
+    // Uninitialized librespot backend
+    UninitializedLibrespot(),
     // Decoding error with rodio
     RodioDecoderError(DecoderError),
     // Seek error with rodio
     RodioSeekError(SeekError),
     // Librespot general error
     LibrespotError(core::Error),
-    
+    // Librespot (Mixer, Backend, Discovery) Errors
+    LibrespotInitialization(String),
+
+    /// --- Serde Errors ---
+    SerdeJsonError(serde_json::Error),
 }
 
 #[derive(Debug)]
@@ -63,8 +67,6 @@ impl fmt::Display for SpotMpError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             SpotMpError::Error(e) => write!(f, "An error ocurred: {}", e),
-            SpotMpError::Keyring(e) => write!(f, "Keyring error: {}", e),
-            SpotMpError::KeyringV1(e) => write!(f, "Keyring V1 error: {}", e),
             SpotMpError::SQLite(e) => write!(f, "Data Base error: {}", e),
             SpotMpError::AudioTag(e) => write!(f, "Audio tag error: {}", e),
             SpotMpError::Io(e) => write!(f, "I/O error: {}", e),
@@ -79,17 +81,15 @@ impl fmt::Display for SpotMpError {
             SpotMpError::RodioDecoderError(e) => write!(f, "Error in Decoding with rodio: {}", e),
             SpotMpError::RodioSeekError(e) => write!(f, "Error trying to seek the audio track: {}", e),
             SpotMpError::LibrespotError(e) => write!(f, "Unknown error in librespot backend: {}", e),
+            SpotMpError::LibrespotInitialization(s) => write!(f, "Failed to initialize Librespot: {}", s),
+            SpotMpError::SerdeJsonError(e) => write!(f, "Error trying to serialize or deserialize a file: {}", e),
+            SpotMpError::UnknownAudioBackend(s) => write!(f, "Trying to performance an action with audio backend without initialize: {}", s),
+            SpotMpError::UninitializedLibrespot() => write!(f, "Tryied to perform an operation over uninitilized librespot backend."),
         }
     }
 }
 
 impl std::error::Error for SpotMpError {}
-
-impl From<keyring::Error> for SpotMpError {
-    fn from(error: keyring::Error) -> Self {
-        SpotMpError::Keyring(error)
-    }
-}
 
 impl From<sqlite::Error> for SpotMpError {
     fn from(error: sqlite::Error) -> Self {
@@ -136,5 +136,11 @@ impl From<SeekError> for SpotMpError {
 impl From<core::Error> for SpotMpError {
     fn from(error: core::Error) -> Self {
         SpotMpError::LibrespotError(error)
+    }
+}
+
+impl From<serde_json::Error> for SpotMpError {
+    fn from(error: serde_json::Error) -> Self {
+        SpotMpError::SerdeJsonError(error)
     }
 }

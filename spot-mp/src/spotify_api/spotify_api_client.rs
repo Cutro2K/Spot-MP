@@ -11,7 +11,7 @@ use crate::spotify_api::{spotify_auth::SpotifyAuth, auth_callback_server::AuthCa
 use crate::domain::spot_mp_errors::{SpotMpError, Status};
 
 pub struct SpotifyApiClient {
-access_token: Option<String>,
+    access_token: Option<String>,
     refresh_token: Option<String>, 
     client: Client,    
 }
@@ -33,11 +33,17 @@ impl SpotifyApiClient {
     }
     
     // --- GETTERS ---
-    pub fn access_token(&self) -> Option<String> {
-        self.access_token.clone()
+    pub fn access_token(&self) -> Option<&str> {
+        match &self.access_token {
+            Some(token) => Some(token),
+            None => None,
+        }
     }
-    pub fn refresh_token(&self) -> Option<String> {
-        self.refresh_token.clone()
+    pub fn refresh_token(&self) -> Option<&str> {
+        match &self.refresh_token {
+            Some(token) => Some(token),
+            None => None,
+        }
     }
     
     // --- AUXILIAR FUNCIONS ---
@@ -84,7 +90,7 @@ impl SpotifyApiClient {
     }
     
     // -- Get album traks ---
-    async fn get_album_tracks(&self, album_id: &str, img_path: String) -> Result<Vec<Song>, SpotMpError> {
+    async fn get_album_tracks(&self, album_id: &str, img_path: &str) -> Result<Vec<Song>, SpotMpError> {
         let mut result: Vec<Song> = Vec::new();
         let mut next_url = Some(format!("https://api.spotify.com/v1/albums/{}/tracks?limit=50", album_id));
         let token = self.access_token.as_ref().expect("The access token is missing!");
@@ -101,7 +107,7 @@ impl SpotifyApiClient {
                             None, 
                             item.name,
                             (item.duration_ms/1000).into(),
-                            img_path.clone(),
+                            img_path.to_owned(),
                             SongOrigin::Spotify(SpotifySongData { spotify_id: item.id }),
                     ));
                 }
@@ -122,7 +128,7 @@ impl SpotifyApiClient {
     }
     
     // -- Import Liked Playlist --
-    async fn import_liked_playlist(&self, client_id: String) -> Result<Vec<Playlist>, SpotMpError> {
+    async fn import_liked_playlist(&self, client_id: &str) -> Result<Vec<Playlist>, SpotMpError> {
         let mut result: Vec<Playlist> = Vec::new();
         let mut next_url = Some("https://api.spotify.com/v1/me/playlists?limit=50".to_string());    
         let token = self.access_token.as_ref().expect("The access token is missing!");
@@ -193,7 +199,7 @@ impl SpotifyApiClient {
                     let img_path = item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png"));
 
                     future_peticions.push( async move {
-                        let songs = self.get_album_tracks(&album_id, img_path).await?;
+                        let songs = self.get_album_tracks(&album_id, &img_path).await?;
 
                         Ok::<Playlist, SpotMpError>(Playlist::new( 
                                 songs, 
@@ -227,11 +233,18 @@ impl SpotifyApiClient {
     // --- MAIN FUNCTIONALITY ---
 
     // --- Function 1: Login in Spotify to get tokens --- 
-    pub async fn login(&mut self, client_id: String) -> Result<String, SpotMpError> {
+    pub async fn login(&mut self, client_id: &str) -> Result<String, SpotMpError> {
         // Common Variables:
         const REDIRECT_URI: &str = "http://127.0.0.1:8888/callback";
-        const SCOPE: &str = "playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public streaming user-modify-playback-state user-read-playback-state user-library-read";
+        const IMAGE_SCOPE: &str = "ugc-image-upload";
+        const PLAYLIST_SCOPE: &str = "playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public";
+        const USER_SCOPE: &str = "user-modify-playback-state user-read-playback-state user-library-read user-read-currently-playing user-read-email user-read-private";
+        const OTHER_SCOPE: &str = "streaming app-remote-control";
         
+        let scopes = PLAYLIST_SCOPE.to_owned() + " " + USER_SCOPE + " " + OTHER_SCOPE + " " + IMAGE_SCOPE; 
+        
+        println!("{}", scopes);
+
         // First Step: Getting Code Verifier & Code Challenge:
         let auth_codes = SpotifyAuth::new();
         let code_verifier = auth_codes.code_verifier();
@@ -239,11 +252,11 @@ impl SpotifyApiClient {
 
         // Second Step: Request user authentication: 
         let mut params_authentication = HashMap::new();
-        params_authentication.insert("client_id", client_id.clone());
-        params_authentication.insert("response_type", "code".to_string());
-        params_authentication.insert("redirect_uri", REDIRECT_URI.to_string());
-        params_authentication.insert("scope", SCOPE.to_string());
-        params_authentication.insert("code_challenge_method", "S256".to_string());
+        params_authentication.insert("client_id", client_id);
+        params_authentication.insert("response_type", "code");
+        params_authentication.insert("redirect_uri", REDIRECT_URI);
+        params_authentication.insert("scope", &scopes);
+        params_authentication.insert("code_challenge_method", "S256");
         params_authentication.insert("code_challenge", code_challenge);
     
         let url = reqwest::Url::parse_with_params("https://accounts.spotify.com/authorize", &params_authentication)?;
@@ -258,9 +271,9 @@ impl SpotifyApiClient {
         let url = "https://accounts.spotify.com/api/token";
         let mut params = HashMap::new();
         params.insert("client_id", client_id);
-        params.insert("grant_type", "authorization_code".to_string());
-        params.insert("redirect_uri", REDIRECT_URI.to_string());
-        params.insert("code", code);
+        params.insert("grant_type", "authorization_code");
+        params.insert("redirect_uri", REDIRECT_URI);
+        params.insert("code", &code);
         params.insert("code_verifier", code_verifier);
         
         let response = self.client.post(url).form(&params).send().await?;
@@ -290,7 +303,7 @@ impl SpotifyApiClient {
     }
 
     // --- Function 2: Renew access token --- 
-    pub async fn renew_token(&mut self, client_id: String) -> Result<String, SpotMpError> {
+    pub async fn renew_token(&mut self, client_id: &str) -> Result<String, SpotMpError> {
         // Building the request:
         let url = "https://accounts.spotify.com/api/token";
         let refresh_token = self.refresh_token().ok_or(SpotMpError::Error("Tried to renew token before authentication (refresh_token is none)".to_string()))?;
@@ -298,8 +311,8 @@ impl SpotifyApiClient {
         // Parameters:
         let mut params = HashMap::new();
         params.insert("grant_type", "refresh_token");
-        params.insert("refresh_token", refresh_token.as_str());
-        params.insert("client_id", client_id.as_str());
+        params.insert("refresh_token", refresh_token);
+        params.insert("client_id", client_id);
         
         // Making the request
         let response = self.client.post(url).header("Content-Type", "application/x-www-form-urlencoded").form(&params).send().await?;
@@ -329,7 +342,7 @@ impl SpotifyApiClient {
     }
     
     // --- Function 3: Import Albums and Playlists ---
-    pub async fn import_liked_albums_and_playlist(&self, client_id: String) -> Result<Vec<Playlist>, SpotMpError> {
+    pub async fn import_liked_albums_and_playlist(&self, client_id: &str) -> Result<Vec<Playlist>, SpotMpError> {
         let mut result: Vec<Playlist> = Vec::new();
         
         let playlists_fut = self.import_liked_playlist(client_id);
@@ -342,7 +355,7 @@ impl SpotifyApiClient {
     }
     
     // --- Function 4: Search song whit a specific query ---
-    pub async fn search_song(&self, query: String) -> Result<Vec<Song>, SpotMpError> {
+    pub async fn search_song(&self, query: &str) -> Result<Vec<Song>, SpotMpError> {
         let mut result = Vec::new();
         let url = format!("https://api.spotify.com/v1/search?q={}&type=track&limit=6&offset=6", query);
         let token = self.access_token.as_ref().expect("The access token is missing!");
@@ -477,13 +490,13 @@ mod tests {
         let mut client = SpotifyApiClient::new();
         
         // REPLACE THIS STRING WITH YOUR REAL SPOTIFY CLIENT ID
-        let my_real_client_id = "850a0abcc2474ff5aad399aeb9489d06".to_string();
+        let my_real_client_id = "850a0abcc2474ff5aad399aeb9489d06";
 
         println!("WARNING: The test will open the browser. Please authorize the app to continue.");
 
         // 2. Launch the login process. 
         // The test will pause on this line waiting for your interaction in the browser.
-        let result = client.login(my_real_client_id.clone()).await;
+        let result = client.login(my_real_client_id).await;
 
         // 3. Main Assert: Ensure the result was Ok(())
         assert!(result.is_ok(), "The login process failed: {:?}", result.err());
@@ -500,7 +513,7 @@ mod tests {
         }
 
         // Testing function 4: Search for songs
-        let songs = client.search_song("charly".to_string()).await.expect("Failed in function 4 search_song!");
+        let songs = client.search_song("charly").await.expect("Failed in function 4 search_song!");
         
         for song in songs {
             println!("Name: {}, Image Path: {}", song.song_name(), song.img_path());

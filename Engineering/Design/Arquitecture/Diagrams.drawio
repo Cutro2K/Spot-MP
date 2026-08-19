@@ -1,68 +1,95 @@
 <mxfile host="app.diagrams.net">
   <diagram name="Page-1" id="kiZTgiTjpDbv69x0LGk6">
-    <mxGraphModel dx="2714" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="4201" dy="1155" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-1" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Classes: Data &amp;amp; Storage Layer" vertex="1">
-          <mxGeometry height="210" width="840" x="-150" as="geometry">
-            <mxRectangle height="30" width="170" x="-140" y="10" as="alternateBounds" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-2" parent="UAvaCDrN4OsXGgMqyOjb-1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;br&gt;&lt;/b&gt;FileManager&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- song_folder: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- cache_folder: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- new(String: song_folder, String: cache_folder): FileChecker&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_song_folder(): String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ check_file_existance(string: file_path): boolean&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_local_songs(): Vec&amp;lt;Song&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_img(String: path): img&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
-          <mxGeometry height="170" width="310" x="10" y="30" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-3" parent="UAvaCDrN4OsXGgMqyOjb-1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;DBController&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- connection: Connection&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create_playlist(string: name): result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ delete_playlist(playlist_id: i64): result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ add_song_to_playlist(playlist_id: i64, Song: song): result&amp;lt;i64, Error&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_playlists(): result&amp;lt;Vec&amp;lt;Playlist&amp;gt;&amp;gt;&lt;/p&gt;" vertex="1">
-          <mxGeometry height="160" width="230" x="330" y="30" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-4" parent="UAvaCDrN4OsXGgMqyOjb-1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;AuthStorage&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ save_refresh_token(token: String): Result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_refresh_token(): Result&amp;lt;token: String, Error&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ delete_refresh_token(): Result&amp;lt;()&amp;gt;&lt;/p&gt;" vertex="1">
-          <mxGeometry height="110" width="260" x="570" y="30" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-5" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Classes: Controller Layer" vertex="1">
-          <mxGeometry height="370" width="665" x="-830" y="610" as="geometry">
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-5" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Classes: Domain Module" vertex="1">
+          <mxGeometry height="840" width="700" x="-2460" y="20" as="geometry">
             <mxRectangle height="30" width="120" x="-30" y="350" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-6" parent="UAvaCDrN4OsXGgMqyOjb-5" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Song&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id_song: i32&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- song_name: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- duration: i32&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- img_path: string&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getters(): Type&lt;/p&gt;" vertex="1">
-          <mxGeometry height="145" width="160" x="70" y="45" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-7" parent="UAvaCDrN4OsXGgMqyOjb-5" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Playlist&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- songs: Vec&amp;lt;Song&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- is_modifiable: boolean&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- playlist_name: string&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getters(): Type&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_duration(): i32&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
-          <mxGeometry height="150" width="170" x="410" y="42.5" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-8" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-5" source="UAvaCDrN4OsXGgMqyOjb-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-6">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-9" parent="UAvaCDrN4OsXGgMqyOjb-5" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;br&gt;LocalSong&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ file_direction: string&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&amp;nbsp;+ get_album_img(): img" vertex="1">
-          <mxGeometry height="100" width="130" x="10" y="240" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-10" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-5" source="UAvaCDrN4OsXGgMqyOjb-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-6">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-11" parent="UAvaCDrN4OsXGgMqyOjb-5" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;SpotifySong&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ spotify_id: string&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&amp;nbsp;+ get_album_img(): img" vertex="1">
-          <mxGeometry height="100" width="130" x="150" y="240" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-12" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-5" source="UAvaCDrN4OsXGgMqyOjb-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-7">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-13" parent="UAvaCDrN4OsXGgMqyOjb-5" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;LocalPlaylist&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id_playlist: i32&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ add_song(): result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_playlist_id(): String&lt;/p&gt;" vertex="1">
-          <mxGeometry height="120" width="160" x="330" y="240" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-14" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-5" source="UAvaCDrN4OsXGgMqyOjb-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-7">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-15" parent="UAvaCDrN4OsXGgMqyOjb-5" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;br&gt;&lt;/b&gt;SpotifyPlaylist&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&amp;nbsp;- id_playlist: String&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ add_song(): result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_playlist_id(): String&lt;/p&gt;" vertex="1">
-          <mxGeometry height="120" width="160" x="500" y="240" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-16" parent="1" style="shape=tableRow;horizontal=0;startSize=0;swimlaneHead=0;swimlaneBody=0;fillColor=none;collapsible=0;dropTarget=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;top=0;left=0;right=0;bottom=0;" value="" vertex="1">
-          <mxGeometry height="30" width="205" x="-340" y="450" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-17" parent="UAvaCDrN4OsXGgMqyOjb-16" style="shape=partialRectangle;connectable=0;fillColor=none;top=0;left=0;bottom=0;right=0;editable=1;overflow=hidden;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="30" width="55" as="geometry">
-            <mxRectangle height="30" width="55" as="alternateBounds" />
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-4" collapsed="1" parent="UAvaCDrN4OsXGgMqyOjb-5" style="swimlane;whiteSpace=wrap;html=1;movable=0;" value="Song" vertex="1">
+          <mxGeometry height="30" width="60" x="10" y="30" as="geometry">
+            <mxRectangle height="310" width="300" x="10" y="30" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-6" parent="9QfRFx_s_mu3CgqiN7IC-4" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Song&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id_song: Option&amp;lt;i64&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- song_name: string&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- duration: i64&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- img_path: string&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getters(): Type&lt;/p&gt;" vertex="1">
+          <mxGeometry height="145" width="160" x="75" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-8" edge="1" parent="9QfRFx_s_mu3CgqiN7IC-4" source="UAvaCDrN4OsXGgMqyOjb-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-9" parent="9QfRFx_s_mu3CgqiN7IC-4" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;br&gt;LocalSong&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ file_direction: string&lt;/p&gt;" vertex="1">
+          <mxGeometry height="70" width="130" x="15" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-10" edge="1" parent="9QfRFx_s_mu3CgqiN7IC-4" source="UAvaCDrN4OsXGgMqyOjb-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-11" parent="9QfRFx_s_mu3CgqiN7IC-4" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;SpotifySong&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ spotify_id: string&lt;/p&gt;" vertex="1">
+          <mxGeometry height="70" width="130" x="155" y="225" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-11" collapsed="1" parent="UAvaCDrN4OsXGgMqyOjb-5" style="swimlane;whiteSpace=wrap;html=1;movable=0;" value="Playlist" vertex="1">
+          <mxGeometry height="30" width="70" x="330" y="30" as="geometry">
+            <mxRectangle height="310" width="350" x="330" y="30" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-7" parent="9QfRFx_s_mu3CgqiN7IC-11" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Playlist&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- songs: Vec&amp;lt;Song&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- is_modifiable: boolean&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- playlist_name: string&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getters(): Type&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_duration(): i32&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_playlist_id: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="157.5" width="170" x="90" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-12" edge="1" parent="9QfRFx_s_mu3CgqiN7IC-11" source="UAvaCDrN4OsXGgMqyOjb-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-13" parent="9QfRFx_s_mu3CgqiN7IC-11" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;LocalPlaylist&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- id_playlist: i32&lt;/p&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="10" y="227.5" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-14" edge="1" parent="9QfRFx_s_mu3CgqiN7IC-11" source="UAvaCDrN4OsXGgMqyOjb-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-15" parent="9QfRFx_s_mu3CgqiN7IC-11" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;br&gt;&lt;/b&gt;SpotifyPlaylist&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&amp;nbsp;- id_playlist: String" vertex="1">
+          <mxGeometry height="70" width="160" x="180" y="227.5" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-12" collapsed="1" parent="UAvaCDrN4OsXGgMqyOjb-5" style="swimlane;whiteSpace=wrap;html=1;startSize=23;movable=0;" value="Auth Models" vertex="1">
+          <mxGeometry height="30" width="100" x="480" y="350" as="geometry">
+            <mxRectangle height="350" width="212.5" x="480" y="350" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-13" parent="9QfRFx_s_mu3CgqiN7IC-12" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;SessionData&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ web_api: Option&amp;lt;WebApiData&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ librespot: Option&amp;lt;LibrespotData&amp;gt;&lt;/p&gt;&lt;br&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="90" width="185" x="13.75" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-16" parent="9QfRFx_s_mu3CgqiN7IC-12" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;WebApiData&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ access_token: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ refresh_token: String&lt;/p&gt;&lt;br&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="90" width="185" x="13.75" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-17" parent="9QfRFx_s_mu3CgqiN7IC-12" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;LibrespotData&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ device_id: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ credentials: String&lt;/p&gt;&lt;br&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="90" width="185" x="13.75" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-18" collapsed="1" parent="UAvaCDrN4OsXGgMqyOjb-5" style="swimlane;whiteSpace=wrap;html=1;startSize=23;movable=0;" value="Audio Messages" vertex="1">
+          <mxGeometry height="30" width="120" x="250" y="350" as="geometry">
+            <mxRectangle height="455" width="220" x="250" y="350" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-19" parent="9QfRFx_s_mu3CgqiN7IC-18" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;AudioSource&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Local(String)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Spotify(String)&lt;/p&gt;&lt;br&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="90" width="185" x="17.5" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-20" parent="9QfRFx_s_mu3CgqiN7IC-18" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Messages&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Play(AudioSource)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ TogglePause&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Seek(u32)&lt;/p&gt;&lt;br&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="100" width="185" x="17.5" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-21" parent="9QfRFx_s_mu3CgqiN7IC-18" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;ActiveBackend&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Local&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Spotify&lt;/p&gt;&lt;br&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="90" width="185" x="17.5" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-22" parent="9QfRFx_s_mu3CgqiN7IC-18" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;ActiveBackend&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Finished&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ Error(SpotMpError)&lt;/p&gt;&lt;br&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="90" width="185" x="17.5" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-23" collapsed="1" parent="UAvaCDrN4OsXGgMqyOjb-5" style="swimlane;whiteSpace=wrap;html=1;startSize=23;movable=0;" value="SpotMpError" vertex="1">
+          <mxGeometry height="30" width="120" x="10" y="350" as="geometry">
+            <mxRectangle height="350" width="230" x="10" y="350" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-24" parent="9QfRFx_s_mu3CgqiN7IC-23" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;SpotMpError&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;Error&lt;/b&gt;(String)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;SQLite&lt;/b&gt;(sqlite::Error)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;AudioTag&lt;/b&gt;(audiotags::Error)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;Io&lt;/b&gt;(std::io::Error)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;TimeoutTCP&lt;/b&gt;()&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;AuthDenied&lt;/b&gt;()&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;Reqwest&lt;/b&gt;(reqwest::Error)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;UrlParseError&lt;/b&gt;(ParseError)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;SpotifyErrorStatus&lt;/b&gt;(Status)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;UnknownAudioBackend&lt;/b&gt;(String)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;UninitializedLibrespot&lt;/b&gt;()&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;RodioDecoderError&lt;/b&gt;(DecoderError)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;RodioSeekError&lt;/b&gt;(SeekError)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;LibrespotError&lt;/b&gt;(core::Error)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;LibrespotInitialization&lt;/b&gt;(String)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ &lt;b&gt;SerdeJsonError&lt;/b&gt;(serde_json::Error)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;&lt;br&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="290" width="212.5" x="8.75" y="40" as="geometry" />
+        </mxCell>
         <mxCell id="UAvaCDrN4OsXGgMqyOjb-18" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Data Base" vertex="1">
-          <mxGeometry height="590" width="665" x="-830" as="geometry">
+          <mxGeometry height="590" width="665" x="-850" y="20" as="geometry">
             <mxRectangle height="30" width="90" x="-830" y="10" as="alternateBounds" />
           </mxGeometry>
         </mxCell>
@@ -280,8 +307,27 @@
         <mxCell id="UAvaCDrN4OsXGgMqyOjb-76" parent="UAvaCDrN4OsXGgMqyOjb-18" style="ellipse;whiteSpace=wrap;html=1;align=center;" value="img_path" vertex="1">
           <mxGeometry height="40" width="100" x="342.5" y="230" as="geometry" />
         </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-77" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Classes: SpotifyAPI Module" vertex="1">
-          <mxGeometry height="330" width="660" x="-150" y="230" as="geometry" />
+        <mxCell id="9QfRFx_s_mu3CgqiN7IC-28" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Third Layer (Backend)" vertex="1">
+          <mxGeometry height="960" width="862" x="-1740" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-1" collapsed="1" parent="9QfRFx_s_mu3CgqiN7IC-28" style="swimlane;whiteSpace=wrap;html=1;movable=0;" value="Classes: Data &amp;amp; Storage Layer" vertex="1">
+          <mxGeometry height="30" width="170" x="12" y="40" as="geometry">
+            <mxRectangle height="240" width="838" x="12" y="40" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-2" parent="UAvaCDrN4OsXGgMqyOjb-1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;br&gt;&lt;/b&gt;FileManager&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- song_folder: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- cache_folder: String&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- new(String: song_folder, String: cache_folder): FileChecker&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_song_folder(): String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ check_file_existance(string: file_path): boolean&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_local_songs(): Vec&amp;lt;Song&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_img(String: path): img&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="170" width="310" x="20" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-3" parent="UAvaCDrN4OsXGgMqyOjb-1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;DBController&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- connection: Connection&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ create_playlist(string: name): result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ delete_playlist(playlist_id: i64): result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ add_song_to_playlist(playlist_id: i64, Song: song): result&amp;lt;i64, Error&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ get_playlists(): result&amp;lt;Vec&amp;lt;Playlist&amp;gt;&amp;gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="160" width="230" x="590" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="R1myFrNXBgB3_yXNUWHy-8" parent="UAvaCDrN4OsXGgMqyOjb-1" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;AuthStorage&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- file_path&lt;span class=&quot;e-10202-text encore-text-body-medium&quot;&gt;: PathBuf&lt;/span&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ new(): Self&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ load_session(): Result&amp;lt;SessionData&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ save_session(data: SessionData): Result&amp;lt;()&amp;gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="130" width="230" x="340" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-77" collapsed="1" parent="9QfRFx_s_mu3CgqiN7IC-28" style="swimlane;whiteSpace=wrap;html=1;movable=0;" value="Classes: SpotifyAPI Module" vertex="1">
+          <mxGeometry height="30" width="170" x="12" y="290" as="geometry">
+            <mxRectangle height="330" width="660" x="12" y="290" as="alternateBounds" />
+          </mxGeometry>
         </mxCell>
         <mxCell id="UAvaCDrN4OsXGgMqyOjb-78" parent="UAvaCDrN4OsXGgMqyOjb-77" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;br&gt;&lt;/b&gt;SpotifyApiClient&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- access_token: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- refresh_token: String&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- client: reqwest::Client&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ getters(): Type&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ login(client_id: String): Result&amp;lt;String&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ refresh_token(): Result&amp;lt;String&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ import_liked_albums_and_playlists(): Result&amp;lt;Vec&amp;lt;Playlist&amp;gt;, SpotMpError&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- import_liked_albums(): Result&amp;lt;Vec&amp;lt;Playlist&amp;gt;, SpotMpError&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- import_liked_playlists(client_id: String): Result&amp;lt;Vec&amp;lt;Playlist&amp;gt;, SpotMpError&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- get_album_tracks(album_id: String, img_path: String): Result&amp;lt;Vec&amp;lt;Playlist&amp;gt;, SpotMpError&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- get_playlist_tracks(playlist_id: String): Result&amp;lt;Vec&amp;lt;Song&amp;gt;, SpotMpError&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ search_song(query: String): Result&amp;lt;Vec&amp;lt;Song&amp;gt;&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ add_song_to_playlist(playlist_uri: String, song_uri: String): Result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ remove_song_from_playlist(playlist_uri: String, song_uri: String): Result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ delete_playlist(playlist_uri: String): Result&amp;lt;()&amp;gt;&lt;/p&gt;" vertex="1">
           <mxGeometry height="290" width="460" x="10" y="30" as="geometry" />
@@ -292,65 +338,28 @@
         <mxCell id="qWAaZRtSS4anllzr_lru-1" parent="UAvaCDrN4OsXGgMqyOjb-77" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;br&gt;&lt;/b&gt;AuthCallbackServer&lt;/p&gt;&lt;br&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ listen_for_code(): String&lt;/p&gt;" vertex="1">
           <mxGeometry height="90" width="170" x="479" y="166.25" as="geometry" />
         </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-80" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Classes: AudioEngine Module" vertex="1">
-          <mxGeometry height="310" width="970" x="-150" y="570" as="geometry" />
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-80" collapsed="1" parent="9QfRFx_s_mu3CgqiN7IC-28" style="swimlane;whiteSpace=wrap;html=1;movable=0;" value="Classes: AudioEngine Module" vertex="1">
+          <mxGeometry height="30" width="180" x="12" y="630" as="geometry">
+            <mxRectangle height="310" width="618" x="12" y="630" as="alternateBounds" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-81" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Interface&amp;gt;&lt;b&gt;&amp;gt;&lt;/b&gt;&lt;/i&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;AudioBackend&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ play(source: String): Result&amp;lt;()&amp;gt;&lt;br&gt;+ toggle_pause(): Result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ seek(position: i32): Result&amp;lt;()&amp;gt;&lt;/p&gt;" vertex="1">
-          <mxGeometry height="100" width="180" x="90" y="30" as="geometry" />
+        <mxCell id="UAvaCDrN4OsXGgMqyOjb-81" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;i&gt;&amp;lt;&amp;lt;Interface&amp;gt;&lt;b&gt;&amp;gt;&lt;/b&gt;&lt;/i&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;AudioBackend&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ play(source: String): Result&amp;lt;()&amp;gt;&lt;br&gt;+ toggle_pause(): Result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ seek(position: i32): Result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ stop(): Result&amp;lt;()&amp;gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="120" width="180" x="90" y="30" as="geometry" />
         </mxCell>
         <mxCell id="UAvaCDrN4OsXGgMqyOjb-82" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-80" source="UAvaCDrN4OsXGgMqyOjb-83" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-81">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="UAvaCDrN4OsXGgMqyOjb-83" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;br&gt;&lt;/b&gt;LocalRodioBackend&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;div style=&quot;height:2px;&quot;&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;div style=&quot;height:2px;&quot;&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="20" y="180" as="geometry" />
+          <mxGeometry height="70" width="140" x="23" y="205" as="geometry" />
         </mxCell>
         <mxCell id="UAvaCDrN4OsXGgMqyOjb-84" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-80" source="UAvaCDrN4OsXGgMqyOjb-85" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-81">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="UAvaCDrN4OsXGgMqyOjb-85" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin: 4px 0px 0px;&quot; align=&quot;center&quot;&gt;&lt;font&gt;LibrespotBackend&lt;/font&gt;&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;div style=&quot;height:2px;&quot;&gt;&lt;/div&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;div style=&quot;height:2px;&quot;&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="140" x="200" y="180" as="geometry" />
+          <mxGeometry height="70" width="140" x="213" y="205" as="geometry" />
         </mxCell>
         <mxCell id="UAvaCDrN4OsXGgMqyOjb-86" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Class&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;AudioBackendManager&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- current_backend: Option&amp;lt;ActiveBackend&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- spotify_backend: LibrespotBackend&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;- rodio_backend: LocalRodioBackend&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ play(audio_source: AudioSource): Result&amp;lt;()&amp;gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot;&gt;+ toggle_pause(): Result&amp;lt;()&amp;gt;&lt;/p&gt;" vertex="1">
-          <mxGeometry height="140" width="230" x="370" y="160" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-87" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-80" source="UAvaCDrN4OsXGgMqyOjb-88" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-86">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-88" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;br&gt;&lt;/b&gt;ActiveBackend&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ Local&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ Spotify&lt;/p&gt;" vertex="1">
-          <mxGeometry height="80" width="100" x="370" y="40" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-89" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-80" source="UAvaCDrN4OsXGgMqyOjb-90" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-99">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-90" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Messages&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ Play(AudioSource)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ TogglePause&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ Seek(u32)&lt;/p&gt;" vertex="1">
-          <mxGeometry height="100" width="120" x="610" y="150" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-91" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-80" source="UAvaCDrN4OsXGgMqyOjb-92" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-90">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-92" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;AudioSource&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ Local(String)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ Spotify(String)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
-          <mxGeometry height="90" width="120" x="610" y="40" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-93" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-80" source="UAvaCDrN4OsXGgMqyOjb-94" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-96">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-94" parent="UAvaCDrN4OsXGgMqyOjb-80" style="verticalAlign=top;align=left;overflow=fill;html=1;whiteSpace=wrap;" value="&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;&lt;b&gt;Enum&lt;/b&gt;&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-top:4px;text-align:center;&quot;&gt;Evento&lt;/p&gt;&lt;hr size=&quot;1&quot; style=&quot;border-style:solid;&quot;&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ Terminado&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;+ Error(String)&lt;/p&gt;&lt;p style=&quot;margin:0px;margin-left:4px;&quot; align=&quot;left&quot;&gt;&lt;br&gt;&lt;/p&gt;" vertex="1">
-          <mxGeometry height="90" width="100" x="760" y="40" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-95" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-80" source="UAvaCDrN4OsXGgMqyOjb-96" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-97">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-96" parent="UAvaCDrN4OsXGgMqyOjb-80" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Respuesta a enviar" vertex="1">
-          <mxGeometry height="30" width="60" x="780" y="150" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-97" parent="UAvaCDrN4OsXGgMqyOjb-80" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Los mensajes se envian&lt;br&gt;a travez de mpsc" vertex="1">
-          <mxGeometry height="40" width="120" x="800" y="220" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-98" edge="1" parent="UAvaCDrN4OsXGgMqyOjb-80" source="UAvaCDrN4OsXGgMqyOjb-99" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UAvaCDrN4OsXGgMqyOjb-97">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="UAvaCDrN4OsXGgMqyOjb-99" parent="UAvaCDrN4OsXGgMqyOjb-80" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Mensaje Recibido" vertex="1">
-          <mxGeometry height="30" width="130" x="605" y="270" as="geometry" />
+          <mxGeometry height="140" width="230" x="370" y="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

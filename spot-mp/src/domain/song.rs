@@ -26,13 +26,13 @@ pub struct Song {
 }
 
 impl Song {
-    pub fn new(_id_song: Option<i64>, _song_name: String, _duration: i64, _img_path: String, _song: SongOrigin) -> Self {
+    pub fn new(id_song: Option<i64>, song_name: String, duration: i64, img_path: String, song: SongOrigin) -> Self {
         Self {
-            id_song: _id_song,
-            song_name: _song_name,
-            duration: _duration,
-            img_path: _img_path,
-            song: _song,
+            id_song,
+            song_name,
+            duration,
+            img_path,
+            song,
         }
     }
     pub fn get_song_name(&self) -> String {

@@ -20,10 +20,10 @@ impl SpotifyAuth {
             code_challenge,
         }
     }
-    pub fn code_verifier(&self) -> String {
-        self.code_verifier.clone()
+    pub fn code_verifier(&self) -> &str {
+        self.code_verifier.as_ref()
     }
-    pub fn code_challenge(&self) -> String {
-        self.code_challenge.clone()
+    pub fn code_challenge(&self) -> &str {
+        self.code_challenge.as_ref()
     }
 }
