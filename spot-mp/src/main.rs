@@ -1,3 +1,4 @@
+use log::info;
 pub mod data_storage;
 pub mod spotify_api;
 pub mod domain;
@@ -7,5 +8,5 @@ pub mod app;
 pub mod controllers;
 
 fn main() {
-     println!("Hello, world!");
+    info!("Spot-MP is starting...");
 }

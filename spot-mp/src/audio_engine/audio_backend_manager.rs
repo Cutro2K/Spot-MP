@@ -2,6 +2,7 @@ use crate::audio_engine::audio_backend::AudioBackend;
 use crate::audio_engine::{librespot_backend::LibrespotBackend, rodio_backend::RodioBackend};
 use crate::domain::audio_messages::{Messages, Event, ActiveBackend};
 use crate::domain::auth_models::LibrespotData;
+use log::error;
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::time::Duration;
 use crate::domain::audio_messages::AudioSource;
@@ -69,14 +70,14 @@ impl AudioBackendManager {
                         },
                         Messages::Seek(position) => {
                             if let Err(e) = self.seek(position) {
-                                eprintln!("{}", e);
+                                error!("{}", e);
                             }
                         },
                         Messages::LoginLibrespot(client_id, cretendials) => {
                             match self.login_librespot(&client_id, cretendials).await {
                                 Ok(data) => {
                                     if let Err(e) = self.sender.send(Event::SpotifyInitilized(data)) {
-                                        eprintln!("{}", e);
+                                        error!("{}", e);
                                     }
                                 },
                                 Err(e) => {
@@ -92,10 +93,10 @@ impl AudioBackendManager {
                         if is_playing && self.is_finished() {
                             is_playing = false;
                             if let Err(e) = self.stop() {
-                                eprintln!("{}", e);
+                                error!("{}", e);
                             }
                             if let Err(e) = self.sender.send(Event::Finished) {
-                                eprintln!("{}", e);
+                                error!("{}", e);
                             }
                         }
                     },

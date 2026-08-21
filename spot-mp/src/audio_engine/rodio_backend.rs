@@ -66,35 +66,3 @@ impl AudioBackend for RodioBackend {
         self.player.empty()  
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::thread;
-    use std::time::Duration;
-    
-    #[test]
-    fn test_rodio_backend() {
-        let mut rodio_backend = RodioBackend::new();
-        
-        println!("Playing a song with rodio...");
-        rodio_backend.play(AudioSource::Local("./assets/songs/alexguz-funk-amp-breakbeat-541097.mp3".to_string())).expect("Failed to start playing a song with rodio backend!");
-        
-        println!("Reproducing audio for 2 seconds...");
-        thread::sleep(Duration::from_secs(2));
-
-        println!("Toggle pause...");
-        rodio_backend.toggle_pause().unwrap();
-        thread::sleep(Duration::from_secs(1));
-        
-        println!("Toggle pause again...");
-        rodio_backend.toggle_pause().unwrap();
-        
-        println!("Reproducing audio for 2 seconds again...");
-        thread::sleep(Duration::from_secs(2));
-
-        println!("Stoping the player and waiting 2 more seconds...");
-        rodio_backend.stop().unwrap();
-        thread::sleep(Duration::from_secs(2));
-    }
-}

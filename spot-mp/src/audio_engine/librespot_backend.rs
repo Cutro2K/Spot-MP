@@ -6,6 +6,7 @@ use librespot::core::{SpotifyId, SpotifyUri};
 use librespot::discovery::{Credentials, DeviceType, Discovery};
 use librespot::playback::config::{PlayerConfig, AudioFormat};
 use librespot::playback::player::{Player, PlayerEvent};
+use log::error;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use librespot::core::{Session, SessionConfig};
@@ -39,7 +40,7 @@ impl LibrespotBackend {
                     break;
                 },
                 Err(e) => {
-                   eprint!("An error happend trying to connet with spotify: {}", e);
+                    error!("An error happend trying to connet with spotify: {}", e);
                 }
             }
         }
@@ -184,43 +185,5 @@ impl AudioBackend for LibrespotBackend {
 
     fn is_finished(&self) -> bool {
         self.is_finished.load(Ordering::SeqCst)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use tokio::time::{sleep, Duration};
-    use super::*;
-
-    #[tokio::test]
-    async fn test_librespot_backend() {
-        let my_real_client_id = "850a0abcc2474ff5aad399aeb9489d06";
-        
-        println!("Go to spotify and click in your device to activate the spotify connection!");
-        let (mut librespot_player, _) = LibrespotBackend::new(my_real_client_id).await.expect("Failed to start librespot backend!");
-            
-        let never_gonna_give_you_up = "4PTG3Z6ehGkBFwjybzWkR8";
-
-        librespot_player.play(AudioSource::Spotify(never_gonna_give_you_up.to_string())).expect("Failed to play never gonna give you up with librespot backend!");
-        // librespot_player.player.await_end_of_track().await; If I uncomment this line works.
-        
-        println!("Reproducing audio for 10 seconds...");
-        sleep(Duration::from_secs(10)).await;
-        
-        println!("Seeking to 70 secods and waiting 10 second...");
-        librespot_player.seek(70).expect("Failed to seek!");
-        sleep(Duration::from_secs(10)).await;
-
-        println!("Toggle pause and waiting 10 second...");
-        librespot_player.toggle_pause().expect("Failed to toggle pause!");
-        sleep(Duration::from_secs(10)).await;
-
-        println!("Toggle pause and reproduce for 20 seconds...");
-        librespot_player.toggle_pause().expect("Failed to toggle pause!");
-        sleep(Duration::from_secs(20)).await;
-
-        println!("Stoping the reproductor and waiting 10 seconds...");
-        librespot_player.stop().expect("Failed to stop!");
-        sleep(Duration::from_secs(10)).await;
     }
 }

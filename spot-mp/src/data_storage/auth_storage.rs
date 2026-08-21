@@ -28,7 +28,7 @@ impl AuthStorage {
     pub fn save_session(&self, data: SessionData) -> Result<(), SpotMpError> {
         let json_data = serde_json::to_string(&data)?;
         
-        let mut file = OpenOptions::new().write(true).read(true).truncate(true).open(&self.file_path)?;
+        let mut file = OpenOptions::new().write(true).read(true).truncate(true).create(true).open(&self.file_path)?;
 
         file.write_all(json_data.as_bytes())?;
         Ok(())

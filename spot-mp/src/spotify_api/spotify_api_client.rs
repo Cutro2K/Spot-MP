@@ -1,3 +1,4 @@
+use log::error;
 use reqwest::{Client};
 use std::{collections::HashMap};
 use webbrowser;
@@ -243,8 +244,6 @@ impl SpotifyApiClient {
         
         let scopes = PLAYLIST_SCOPE.to_owned() + " " + USER_SCOPE + " " + OTHER_SCOPE + " " + IMAGE_SCOPE; 
         
-        println!("{}", scopes);
-
         // First Step: Getting Code Verifier & Code Challenge:
         let auth_codes = SpotifyAuth::new();
         let code_verifier = auth_codes.code_verifier();
@@ -261,8 +260,8 @@ impl SpotifyApiClient {
     
         let url = reqwest::Url::parse_with_params("https://accounts.spotify.com/authorize", &params_authentication)?;
         
-        if webbrowser::open(url.as_str()).is_err() {
-            println!("Error ocurred when trying to open the web browser!");
+        if let Err(e) = webbrowser::open(url.as_str()) {
+            error!("Error ocurred when trying to open the web browser: {}", e);
         }
         
         let code = AuthCallbackServer::listen_for_code()?; 
@@ -477,47 +476,5 @@ impl SpotifyApiClient {
                 _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
             }
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_spotify_client_full_funcionalities() {
-        // 1.Instantiate the client using the method you defined
-        let mut client = SpotifyApiClient::new();
-        
-        // REPLACE THIS STRING WITH YOUR REAL SPOTIFY CLIENT ID
-        let my_real_client_id = "850a0abcc2474ff5aad399aeb9489d06";
-
-        println!("WARNING: The test will open the browser. Please authorize the app to continue.");
-
-        // 2. Launch the login process. 
-        // The test will pause on this line waiting for your interaction in the browser.
-        let result = client.login(my_real_client_id).await;
-
-        // 3. Main Assert: Ensure the result was Ok(())
-        assert!(result.is_ok(), "The login process failed: {:?}", result.err());
-
-        // 4. State Assert: Check that the tokens were actually saved in the instance
-        let obtained_token = client.access_token();
-        assert!(obtained_token.is_some(), "Login was Ok, but the access_token is None");
-        
-        // Testing Function 3: import liked albums and playlists
-        let playlists = client.import_liked_albums_and_playlist(my_real_client_id).await.expect("Failed in function 3 import liked albums and playlists!");
-    
-        for playlist in &playlists {
-            println!("{}", playlist.playlist_name());
-        }
-
-        // Testing function 4: Search for songs
-        let songs = client.search_song("charly").await.expect("Failed in function 4 search_song!");
-        
-        for song in songs {
-            println!("Name: {}, Image Path: {}", song.song_name(), song.img_path());
-        }
-
     }
 }

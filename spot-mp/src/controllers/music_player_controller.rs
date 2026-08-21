@@ -1,5 +1,6 @@
 use std::sync::mpsc::{self, Receiver, Sender};
 use std::collections::VecDeque;
+use log::error;
 use rand::RngExt;
 
 use crate::app::action::{Action, MusicPlayerAction};
@@ -78,7 +79,7 @@ impl MusicPlayerController {
                         Action::MusicPlayer(MusicPlayerAction::LibrespotInitialized(credentials)) 
                     },
                     Event::Error(e) => {
-                        eprint!("{}", e);
+                        error!("{}", e);
                         Action::UnexpectedErrorHappened(e.to_string())
                     }
                 }
@@ -97,12 +98,12 @@ impl MusicPlayerController {
     
     pub fn login(&self, client_id: &str, data: Option<LibrespotData>) {
         if let Err(e) = self.sender.send(Messages::LoginLibrespot(client_id.to_string(), data)) {
-            eprintln!("{}", e);
+            error!("{}", e);
         }
     }
     pub fn logout(&self) {
         if let Err(e) = self.sender.send(Messages::LogoutLibrespot) {
-            eprintln!("{}", e);
+            error!("{}", e);
         }
     }
     
@@ -138,7 +139,7 @@ impl MusicPlayerController {
         // Plays the new song
         //
         if let Err(e) = self.sender.send(Messages::Play(song.to_source())) {
-            eprintln!("{}", e);
+            error!("{}", e);
         }
         
         // Adding the current playing song to memory (for Previous func)
@@ -179,7 +180,7 @@ impl MusicPlayerController {
 
     pub fn toggle_pause(&self) {
         if let Err(e) = self.sender.send(Messages::TogglePause) {
-            eprintln!("{}", e);
+            error!("{}", e);
         }
     }
 

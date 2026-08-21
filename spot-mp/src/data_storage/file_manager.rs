@@ -1,6 +1,9 @@
+use std::fs::File;
 use std::{fs, io, path::Path, path::PathBuf};
 use directories::{ProjectDirs, UserDirs};
 use audiotags::{Tag};
+use log::error;
+use simplelog::{Config, LevelFilter, WriteLogger};
 use crate::domain::song::{LocalSongData, Song, SongOrigin};
 use crate::domain::spot_mp_errors::SpotMpError;
 
@@ -109,14 +112,11 @@ impl FileManager {
     }
 
     pub fn check_file_existence(&self, file_name: &str) -> bool{
-        let file_path = self.music_folder.join(file_name);
-        file_path.exists()
+        self.music_folder.join(file_name).exists()
     }
     
     fn check_cache_existence(&self, file_name: &str) -> bool {
-        let folder_cache_path = Path::new(&self.cache_folder);
-        let file_path = folder_cache_path.join(file_name);
-        file_path.exists()
+        self.cache_folder().join(file_name).exists()
     }
 
     pub fn get_local_songs(&self) -> Result<Vec<Song>, SpotMpError> {
@@ -158,7 +158,7 @@ impl FileManager {
                 let cover_cache_path = Path::new(&self.cache_folder()).join(&song_cover_name);
 
                 if !self.check_cache_existence(&song_cover_name){
-                    fs::write(&cover_cache_path, song_cover).unwrap_or_else(|_| println!("The cover doesn't save"));
+                    fs::write(&cover_cache_path, song_cover).unwrap_or_else(|e| error!("The cover image doen't save correctly for {} | error: {}", song_cover_name, e));
                 }
         
                 // --- Creating the song ---
@@ -178,5 +178,43 @@ impl FileManager {
     
     pub fn get_img(img_path: &str) -> io::Result<Vec<u8>> {
         fs::read(Path::new(img_path))
+    }
+
+    // This functions can excecute without initialization and it's only for the initialization of
+    // the logger for track the errors in the application
+    
+    // This only resolves the temporal config folder path without initialize a FileManager variable
+    fn resolve_config_folder() -> PathBuf {
+        if let Some(user_dirs) = UserDirs::new() {
+            if let Some(project_dir) = ProjectDirs::from("", "", "Spot-MP") {
+                let spot_mp_folder = project_dir.config_dir().join(Path::new("Spot-MP"));
+                if !spot_mp_folder.exists() {
+                    fs::create_dir_all(&spot_mp_folder).unwrap_or_else(|_| 
+                        panic!("Failed to try to create Spot-MP folder"));
+                }
+                return spot_mp_folder;
+            } else {
+                let home_dir = user_dirs.home_dir();
+                let spot_mp_folder = home_dir.join(Path::new("Spot-MP/"));
+                if !spot_mp_folder.exists() {
+                    fs::create_dir_all(&spot_mp_folder).unwrap_or_else(|_| 
+                        panic!("Failed to try to create Spot-MP folder"));
+                }
+                return spot_mp_folder;
+            }
+        }
+        panic!("Spot-mp couldn't start UserDirs!");
+    }
+
+    // Then just init the logger: 
+    pub fn init_logger() {
+        let config_folder = Self::resolve_config_folder();
+        let log_path = config_folder.join("spot-mp.log");
+        
+        WriteLogger::init(
+            LevelFilter::Info,
+            Config::default(),
+            File::create(log_path).expect("Couldn't create the log file in config folder"),
+        ).unwrap();
     }
 }

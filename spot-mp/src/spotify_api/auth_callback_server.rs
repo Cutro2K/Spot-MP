@@ -2,6 +2,7 @@ use std::io::{Read, Write};
 use std::net::TcpListener;
 use std::time::{Duration, Instant};
 use std::thread;
+use log::{info};
 use crate::domain::spot_mp_errors::SpotMpError;
 
 pub struct AuthCallbackServer;
@@ -14,8 +15,8 @@ impl AuthCallbackServer {
 
         // 1. Set the listener to non-blocking mode so it doesn't freeze the thread forever
         listener.set_nonblocking(true)?;
-
-        println!("Waiting for authorization in the web browser (Timeout: 2 minutes)...");
+        
+        info!("Waiting for authorization in the web browser (Timeout: 2 minutes)...");
 
         // 2. Define our timeout limit and start the stopwatch
         let timeout_duration = Duration::from_secs(120); 
