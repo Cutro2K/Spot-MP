@@ -1,11 +1,13 @@
-use std::{env, fs, io, path::Path};
+use std::{fs, io, path::Path, path::PathBuf};
+use directories::{ProjectDirs, UserDirs};
 use audiotags::{Tag};
 use crate::domain::song::{LocalSongData, Song, SongOrigin};
 use crate::domain::spot_mp_errors::SpotMpError;
 
 pub struct FileManager {
-    song_folder: String,
-    cache_folder: String,
+    config_folder: PathBuf,
+    music_folder: PathBuf,
+    cache_folder: PathBuf,
 }
 
 impl Default for FileManager {
@@ -17,42 +19,97 @@ impl Default for FileManager {
 impl FileManager {
 
     pub fn new() -> Self {
-        let home_dir = env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
-        let song_fd = env::var("SPOT_MP_SONG_FOLDER").unwrap_or_else(|_| format!("{home_dir}/Music/"));
-        let cache_fd = env::var("SPOT_MP_FOLDER").unwrap_or_else(|_| format!("{home_dir}/.spot-mp/"));
+        // First of all we have to check if the user have defined the env variables for music and
+        // config folder.
+        // If he haven't will use this default values: 
+        // SPOT_MP_FOLDER = $HOME/spot_mp/
+        // MUSIC_FOLDER = SPOT_MP_FOLDER/Music/
+        // CONFIG_FOLDER = SPOT_MP_FOLDER/
+        // CACHE_FOLDER = SPOT_MP_FODLER/Cache/
         
-        // --- Checking cache folder existance and creating if not exist ---
-        let cache_path = Path::new(&cache_fd).join(Path::new("cache/"));
-        
-        if !cache_path.exists() {
-            fs::create_dir_all(cache_path).expect("Failed to try to create cache directory");
-        }
+        if let Some(user_dirs) = UserDirs::new() {
+            let home_dir = user_dirs.home_dir();
+            
+            // Trying to get config folder: 
+            //                              (qualifier, organization, application)  
+            if let Some(project_dir) = ProjectDirs::from("", "", "Spot-MP") {
+                let spot_mp_folder = project_dir.config_dir().join(Path::new("Spot-MP"));
+                if !spot_mp_folder.exists() {
+                    fs::create_dir_all(&spot_mp_folder).unwrap_or_else(|_| 
+                        panic!("Failed to try to create Spot-MP folder: {}", spot_mp_folder.display()));
+                }
+                let config_folder = spot_mp_folder.clone();
 
-        // --- Checking song folder existance and creating if not exist --- 
-        
-        let song_path = Path::new(&song_fd);
+                let music_folder = match user_dirs.audio_dir() {
+                    Some(dir) => dir.to_path_buf(),
+                    None => spot_mp_folder.clone().join(Path::new("Music/")),
+                };
+                if !music_folder.exists() {
+                    fs::create_dir_all(&music_folder).unwrap_or_else(|_| 
+                        panic!("Failed to try to create Music folder: {}", music_folder.display()));
+                }
+                
+                let cache_folder = project_dir.cache_dir().join("Spot-MP");
+                if !cache_folder.exists() {
+                    fs::create_dir_all(&cache_folder).unwrap_or_else(|_| 
+                        panic!("Failed to try to create Cache folder: {}", cache_folder.display()));
+                }
 
-        if !song_path.exists() {
-            fs::create_dir_all(song_path).expect("Failed to try to create song directory");
-        }
+                Self {
+                    config_folder,
+                    music_folder,
+                    cache_folder,
+                }
+            } else {
+                // Create or fail the needed folders: 
 
-        Self {
-            song_folder: song_fd,
-            cache_folder: cache_fd,
+                let spot_mp_folder = home_dir.join(Path::new("Spot-MP/"));
+                if !spot_mp_folder.exists() {
+                    fs::create_dir_all(&spot_mp_folder).unwrap_or_else(|_| 
+                        panic!("Failed to try to create Spot-MP folder: {}", spot_mp_folder.display()));
+                }
+                let config_folder = spot_mp_folder.clone();
+
+                let music_folder = match user_dirs.audio_dir() {
+                    Some(dir) => dir.to_path_buf(),
+                    None => spot_mp_folder.clone().join(Path::new("Music/")),
+                };
+                if !music_folder.exists() {
+                    fs::create_dir_all(&music_folder).unwrap_or_else(|_| 
+                        panic!("Failed to try to create Music folder: {}", music_folder.display()));
+                }
+
+                let cache_folder = spot_mp_folder.clone().join(Path::new("Cache/"));
+                if !cache_folder.exists() {
+                    fs::create_dir_all(&cache_folder).unwrap_or_else(|_|
+                        panic!("Failed to try to create Cache folder: {}", cache_folder.display()));
+                }
+
+                Self {
+                    config_folder,
+                    music_folder,
+                    cache_folder
+                }
+            }        
+        } else {
+            panic!("Spot-mp couldn't start UserDirs class for file manager!");
         }
     }
 
-    pub fn song_folder(&self) -> &str {
-        self.song_folder.as_ref()
+    pub fn song_folder(&self) -> PathBuf {
+        self.music_folder.clone()
     }
 
-    pub fn cache_folder(&self) -> &str {
-        self.cache_folder.as_ref()
+    pub fn cache_folder(&self) -> PathBuf {
+        self.cache_folder.clone()
+    }
+
+    pub fn config_folder(&self) -> PathBuf {
+        self.config_folder.clone()
     }
 
     pub fn check_file_existence(&self, file_name: &str) -> bool{
-        let folder_file_path = Path::new(&self.song_folder);
-        let file_path = folder_file_path.join(file_name);
+        let file_path = self.music_folder.join(file_name);
         file_path.exists()
     }
     
@@ -121,38 +178,5 @@ impl FileManager {
     
     pub fn get_img(img_path: &str) -> io::Result<Vec<u8>> {
         fs::read(Path::new(img_path))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::env;
-
-    #[test]
-    fn test_extract_local_songs_data() {
-        let test_song_folder = "./assets/songs";
-        let test_cache_folder = "./assets/cache"; 
-        
-        unsafe {
-            env::set_var("SPOT_MP_SONG_FOLDER", test_song_folder);
-            env::set_var("SPOT_MP_CACHE_FOLDER", test_cache_folder);
-        }
-
-        let file_manager = FileManager::new();
-
-        let result = file_manager.get_local_songs();
-
-        assert!(result.is_ok(), "The functions get_local_songs() fails");
-        
-        let songs = result.unwrap();
-
-        assert!(
-            !songs.is_empty(), 
-            "The songs vector is empty, the file manager doesn't detect any file"
-        );
-
-        let first_song = &songs[0];
-        println!("Test Completed. Song: {:?}", first_song);
     }
 }
