@@ -36,7 +36,7 @@ impl FileManager {
             // Trying to get config folder: 
             //                              (qualifier, organization, application)  
             if let Some(project_dir) = ProjectDirs::from("", "", "Spot-MP") {
-                let spot_mp_folder = project_dir.config_dir().join(Path::new("Spot-MP"));
+                let spot_mp_folder = project_dir.config_dir().to_path_buf();
                 if !spot_mp_folder.exists() {
                     fs::create_dir_all(&spot_mp_folder).unwrap_or_else(|_| 
                         panic!("Failed to try to create Spot-MP folder: {}", spot_mp_folder.display()));
@@ -52,7 +52,7 @@ impl FileManager {
                         panic!("Failed to try to create Music folder: {}", music_folder.display()));
                 }
                 
-                let cache_folder = project_dir.cache_dir().join("Spot-MP");
+                let cache_folder = project_dir.cache_dir().to_path_buf();
                 if !cache_folder.exists() {
                     fs::create_dir_all(&cache_folder).unwrap_or_else(|_| 
                         panic!("Failed to try to create Cache folder: {}", cache_folder.display()));
@@ -187,7 +187,7 @@ impl FileManager {
     fn resolve_config_folder() -> PathBuf {
         if let Some(user_dirs) = UserDirs::new() {
             if let Some(project_dir) = ProjectDirs::from("", "", "Spot-MP") {
-                let spot_mp_folder = project_dir.config_dir().join(Path::new("Spot-MP"));
+                let spot_mp_folder = project_dir.config_dir().to_path_buf();
                 if !spot_mp_folder.exists() {
                     fs::create_dir_all(&spot_mp_folder).unwrap_or_else(|_| 
                         panic!("Failed to try to create Spot-MP folder"));
