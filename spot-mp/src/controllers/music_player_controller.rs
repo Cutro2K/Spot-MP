@@ -16,6 +16,12 @@ pub struct MusicPlayerController {
     playback_flow: PlaybackFlow,
 }
 
+impl Default for MusicPlayerController {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MusicPlayerController {
     // --- Constructor --- 
     pub fn new() -> Self {
@@ -91,12 +97,12 @@ impl MusicPlayerController {
     
     pub fn login(&self, client_id: &str, data: Option<LibrespotData>) {
         if let Err(e) = self.sender.send(Messages::LoginLibrespot(client_id.to_string(), data)) {
-            eprint!("{}", e);
+            eprintln!("{}", e);
         }
     }
     pub fn logout(&self) {
         if let Err(e) = self.sender.send(Messages::LogoutLibrespot) {
-            eprint!("{}", e);
+            eprintln!("{}", e);
         }
     }
     
@@ -130,7 +136,10 @@ impl MusicPlayerController {
     // Reproductor Functions: 
     pub fn play(&mut self, song: Song) -> Action {
         // Plays the new song
-        self.sender.send(Messages::Play(song.to_source()));
+        //
+        if let Err(e) = self.sender.send(Messages::Play(song.to_source())) {
+            eprintln!("{}", e);
+        }
         
         // Adding the current playing song to memory (for Previous func)
         if let Some(playing_song) = self.now_playing.take() {
@@ -169,7 +178,9 @@ impl MusicPlayerController {
     }
 
     pub fn toggle_pause(&self) {
-        self.sender.send(Messages::TogglePause);
+        if let Err(e) = self.sender.send(Messages::TogglePause) {
+            eprintln!("{}", e);
+        }
     }
 
     pub fn skip_to_next(&mut self) -> Action {

@@ -69,14 +69,14 @@ impl AudioBackendManager {
                         },
                         Messages::Seek(position) => {
                             if let Err(e) = self.seek(position) {
-                                eprint!("{}", e);
+                                eprintln!("{}", e);
                             }
                         },
                         Messages::LoginLibrespot(client_id, cretendials) => {
                             match self.login_librespot(&client_id, cretendials).await {
                                 Ok(data) => {
                                     if let Err(e) = self.sender.send(Event::SpotifyInitilized(data)) {
-                                        eprint!("{}", e);
+                                        eprintln!("{}", e);
                                     }
                                 },
                                 Err(e) => {
@@ -89,14 +89,13 @@ impl AudioBackendManager {
                         }
                     },
                     Err(mpsc::RecvTimeoutError::Timeout) => {
-                        if is_playing {
-                            if self.is_finished() {
-                                is_playing = false;
-                                self.stop();
-                                
-                                if let Err(e) = self.sender.send(Event::Finished) {
-                                    eprint!("{}", e);
-                                }
+                        if is_playing && self.is_finished() {
+                            is_playing = false;
+                            if let Err(e) = self.stop() {
+                                eprintln!("{}", e);
+                            }
+                            if let Err(e) = self.sender.send(Event::Finished) {
+                                eprintln!("{}", e);
                             }
                         }
                     },
@@ -191,11 +190,11 @@ impl AudioBackend for AudioBackendManager {
                 self.rodio_backend.is_finished()
             },
             Some(ActiveBackend::Spotify) => {
-                if self.spotify_backend.is_none() {
-                    true
+                if let Some(spotify_back) = &self.spotify_backend {
+                    spotify_back.is_finished()
                 }
                 else {
-                    self.spotify_backend.as_ref().unwrap().is_finished()
+                    true
                 }
             },
             None => {

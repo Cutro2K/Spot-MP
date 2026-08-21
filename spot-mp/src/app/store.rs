@@ -1,6 +1,7 @@
 use crate::app::action::Action;
 
-// This store have the entire app state 
+// This store have the entire app state
+#[allow(dead_code)]
 pub struct Store {
     local_page: LocalPageStore,
     spotify_page: SpotifyPageStore,
@@ -9,12 +10,9 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn update(&mut self, action: Action) {
-       match action {
-           _ => {},
-       }
+    pub fn update(&mut self, _action: Action) {
     }
-}
+}   
 
 // This struct have the specific page state: 
 
