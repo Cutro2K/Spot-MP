@@ -1,3 +1,5 @@
+use crate::domain::audio_messages::AudioSource;
+
 #[derive(Clone, Debug)]
 pub struct LocalSongData {
     pub file_direction: String,
@@ -8,15 +10,13 @@ pub struct SpotifySongData {
     pub spotify_id: String,
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Debug)]
 pub enum SongOrigin {
     Local(LocalSongData),
     Spotify(SpotifySongData),
 }
 
-#[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Song {
     id_song: Option<i64>,
     song_name: String,
@@ -53,6 +53,16 @@ impl Song {
     pub fn song(&self) -> SongOrigin {
         self.song.clone()
     }
+    pub fn song_data(&self) -> &str {
+        match &self.song {
+            SongOrigin::Local(path) => {
+                path.file_direction.as_ref()
+            },
+            SongOrigin::Spotify(id) => {
+                id.spotify_id.as_ref()
+            },
+        }
+    }
     pub fn img_path(&self) -> String {
         self.img_path.clone()
     }
@@ -61,6 +71,17 @@ impl Song {
         match self.song {
             SongOrigin::Local(_) => true,
             SongOrigin::Spotify(_) => false,
+        }
+    }
+
+    pub fn to_source(&self) -> AudioSource {
+        match &self.song {
+            SongOrigin::Local(song_data) => {
+                AudioSource::Local(song_data.file_direction.clone())
+            },
+            SongOrigin::Spotify(song_data) => {
+                AudioSource::Spotify(song_data.spotify_id.clone())
+            }
         }
     }
 }

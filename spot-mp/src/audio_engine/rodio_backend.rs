@@ -61,6 +61,10 @@ impl AudioBackend for RodioBackend {
         }
         Ok(())
     }
+    
+    fn is_finished(&self) -> bool {
+        self.player.empty()  
+    }
 }
 
 #[cfg(test)]

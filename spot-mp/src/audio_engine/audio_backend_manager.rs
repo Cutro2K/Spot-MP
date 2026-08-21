@@ -2,11 +2,11 @@ use crate::audio_engine::audio_backend::AudioBackend;
 use crate::audio_engine::{librespot_backend::LibrespotBackend, rodio_backend::RodioBackend};
 use crate::domain::audio_messages::{Messages, Event, ActiveBackend};
 use crate::domain::auth_models::LibrespotData;
-use std::sync::mpsc::{Receiver, Sender};
+use std::sync::mpsc::{self, Receiver, Sender};
+use std::time::Duration;
 use crate::domain::audio_messages::AudioSource;
 use crate::domain::spot_mp_errors::SpotMpError;
 
-#[allow(dead_code)]
 pub struct AudioBackendManager {
     current_backend: Option<ActiveBackend>,
     spotify_backend: Option<LibrespotBackend>,
@@ -39,6 +39,73 @@ impl AudioBackendManager {
     }
     pub fn logout_librespot(&mut self) {
         self.spotify_backend.take();
+    }
+
+    // Audio Engine Primary Loop
+    pub fn start_engine(mut self) {
+
+        tokio::spawn(async move {
+            let mut is_playing = false;
+
+            loop {
+                // Check if we receive a message and do something
+                match self.receiver.recv_timeout(Duration::from_millis(100)) {
+                    Ok(message) => match message {
+                        Messages::Play(source) => {
+                            match self.play(source) {
+                                Ok(_) => {
+                                    is_playing = true;
+                                },
+                                Err(e) => {
+                                    let _ = self.sender.send(Event::Error(e));
+                                    is_playing = false;
+                                }
+                            }
+                        },
+                        Messages::TogglePause => {
+                            if self.toggle_pause().is_ok() {
+                                is_playing = !is_playing;
+                            }
+                        },
+                        Messages::Seek(position) => {
+                            if let Err(e) = self.seek(position) {
+                                eprint!("{}", e);
+                            }
+                        },
+                        Messages::LoginLibrespot(client_id, cretendials) => {
+                            match self.login_librespot(&client_id, cretendials).await {
+                                Ok(data) => {
+                                    if let Err(e) = self.sender.send(Event::SpotifyInitilized(data)) {
+                                        eprint!("{}", e);
+                                    }
+                                },
+                                Err(e) => {
+                                    let _ = self.sender.send(Event::Error(e));
+                                }
+                            }
+                        },
+                        Messages::LogoutLibrespot => {
+                            self.logout_librespot();
+                        }
+                    },
+                    Err(mpsc::RecvTimeoutError::Timeout) => {
+                        if is_playing {
+                            if self.is_finished() {
+                                is_playing = false;
+                                self.stop();
+                                
+                                if let Err(e) = self.sender.send(Event::Finished) {
+                                    eprint!("{}", e);
+                                }
+                            }
+                        }
+                    },
+                    Err(mpsc::RecvTimeoutError::Disconnected) => {
+                        break; 
+                    }
+                }
+            }
+        });
     }
 }
 
@@ -116,5 +183,24 @@ impl AudioBackend for AudioBackendManager {
         }
         self.current_backend = None;
         Ok(())
+    }
+
+    fn is_finished(&self) -> bool {
+        match self.current_backend {
+            Some(ActiveBackend::Local) => {
+                self.rodio_backend.is_finished()
+            },
+            Some(ActiveBackend::Spotify) => {
+                if self.spotify_backend.is_none() {
+                    true
+                }
+                else {
+                    self.spotify_backend.as_ref().unwrap().is_finished()
+                }
+            },
+            None => {
+                true
+            }
+        }
     }
 }

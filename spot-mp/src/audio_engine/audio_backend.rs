@@ -5,4 +5,5 @@ pub trait AudioBackend {
     fn toggle_pause(&mut self) -> Result<(), SpotMpError>;
     fn seek(&mut self, position: u32) -> Result<(), SpotMpError>;
     fn stop(&mut self) -> Result<(), SpotMpError>;
+    fn is_finished(&self) -> bool;
 }
