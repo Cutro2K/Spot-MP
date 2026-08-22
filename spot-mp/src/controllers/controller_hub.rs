@@ -1,5 +1,5 @@
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
-use crate::app::action::Action;
+use crate::state_store::app::action::Action;
 use crate::controllers::spotify_controller::SpotifyController;
 use crate::controllers::local_controller::LocalController; 
 use crate::controllers::music_player_controller::MusicPlayerController;

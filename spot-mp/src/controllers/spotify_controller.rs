@@ -1,4 +1,4 @@
-use crate::spotify_api::spotify_api_client::SpotifyApiClient;
+use crate::services::spotify_api::spotify_api_client::SpotifyApiClient;
 
 #[allow(dead_code)]
 pub struct SpotifyController {

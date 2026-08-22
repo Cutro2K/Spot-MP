@@ -3,10 +3,10 @@ use std::collections::VecDeque;
 use log::error;
 use rand::RngExt;
 
-use crate::app::action::{Action, MusicPlayerAction};
+use crate::state_store::app::action::{Action, MusicPlayerAction};
 use crate::domain::auth_models::LibrespotData;
 use crate::domain::{audio_messages::{Event, Messages}, song::Song, playback_flow::PlaybackFlow};
-use crate::audio_engine::audio_backend_manager::AudioBackendManager;
+use crate::services::audio_engine::audio_backend_manager::AudioBackendManager;
 
 pub struct MusicPlayerController {
     reciever: mpsc::UnboundedReceiver<Event>,

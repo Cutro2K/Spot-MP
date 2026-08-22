@@ -1,4 +1,5 @@
-use crate::data_storage::auth_storage::AuthStorage;
+use crate::services::data_storage::auth_storage::AuthStorage;
+
 #[allow(dead_code)]
 pub struct AuthController {
     auth_storage: AuthStorage,

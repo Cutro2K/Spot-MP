@@ -4,6 +4,7 @@ pub mod domain;
 pub mod controllers;
 pub mod services;
 pub mod ui_manager;
+pub mod state_store;
 
 fn main() {
     FileManager::init_logger();

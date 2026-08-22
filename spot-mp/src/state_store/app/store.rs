@@ -1,4 +1,4 @@
-use crate::app::action::Action;
+use crate::state_store::app::action::Action;
 
 // This store have the entire app state
 #[allow(dead_code)]

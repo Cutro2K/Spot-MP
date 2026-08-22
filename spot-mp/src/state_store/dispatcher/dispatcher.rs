@@ -1,5 +1,5 @@
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
-use crate::app::{action::Action, store::Store};
+use crate::state_store::app::{action::Action, store::Store};
 
 #[allow(dead_code)]
 pub struct Dispatcher {

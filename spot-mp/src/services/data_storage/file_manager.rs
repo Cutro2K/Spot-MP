@@ -131,7 +131,7 @@ impl FileManager {
                 // Default values:
                 let mut song_title = song_file.file_name().display().to_string();
                 let mut song_duration = 0;
-                let mut song_cover: &[u8] = include_bytes!("../../assets/images/broken-image.png");
+                let mut song_cover: &[u8] = include_bytes!("../../../assets/images/broken-image.png");
                 let mut cover_extension = ".png";
                 
                 // Handling non tagged files
