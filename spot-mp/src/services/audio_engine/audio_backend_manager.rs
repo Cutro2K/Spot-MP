@@ -1,5 +1,5 @@
-use crate::audio_engine::audio_backend::AudioBackend;
-use crate::audio_engine::{librespot_backend::LibrespotBackend, rodio_backend::RodioBackend};
+use crate::services::audio_engine::audio_backend::AudioBackend;
+use crate::services::audio_engine::{librespot_backend::LibrespotBackend, rodio_backend::RodioBackend};
 use crate::domain::audio_messages::{Messages, Event, ActiveBackend};
 use crate::domain::auth_models::LibrespotData;
 use log::error;

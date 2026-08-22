@@ -1,12 +1,9 @@
 use log::info;
-use crate::data_storage::file_manager::FileManager;
-pub mod data_storage;
-pub mod spotify_api;
+use crate::services::data_storage::file_manager::FileManager;
 pub mod domain;
-pub mod audio_engine;
-pub mod dispatcher;
-pub mod app;
 pub mod controllers;
+pub mod services;
+pub mod ui_manager;
 
 fn main() {
     FileManager::init_logger();

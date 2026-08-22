@@ -5,10 +5,10 @@ use webbrowser;
 use futures::future::try_join_all;
 use futures::try_join;
 use serde_json::json;
-use crate::spotify_api::models::{GetAlbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SearchSongResponse, SpotifyTokenResponse, PlaylistItem};
+use crate::services::spotify_api::models::{GetAlbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SearchSongResponse, SpotifyTokenResponse, PlaylistItem};
 use crate::domain::song::{Song, SongOrigin, SpotifySongData};
 use crate::domain::playlist::{Playlist, PlaylistOrigin, SpotifyPlaylistData};
-use crate::spotify_api::{spotify_auth::SpotifyAuth, auth_callback_server::AuthCallbackServer};
+use crate::services::spotify_api::{spotify_auth::SpotifyAuth, auth_callback_server::AuthCallbackServer};
 use crate::domain::spot_mp_errors::{SpotMpError, Status};
 
 pub struct SpotifyApiClient {
