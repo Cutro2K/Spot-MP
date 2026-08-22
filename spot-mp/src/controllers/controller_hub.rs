@@ -1,4 +1,4 @@
-use std::sync::mpsc::{Receiver, Sender};
+use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use crate::app::action::Action;
 use crate::controllers::spotify_controller::SpotifyController;
 use crate::controllers::local_controller::LocalController; 
@@ -9,8 +9,8 @@ use crate::controllers::auth_controller::AuthController;
 // to the frontend
 #[allow(dead_code)]
 pub struct ControllerHub {
-    reciever: Receiver<Action>,
-    sender: Sender<Action>,
+    reciever: UnboundedReceiver<Action>,
+    sender: UnboundedSender<Action>,
     local_controller: LocalController,
     spotify_controller: SpotifyController,
     music_player_controller: MusicPlayerController,

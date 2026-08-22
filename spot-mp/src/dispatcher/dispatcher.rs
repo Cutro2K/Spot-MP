@@ -1,12 +1,12 @@
-use std::sync::mpsc::{Receiver, Sender};
+use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use crate::app::{action::Action, store::Store};
 
 #[allow(dead_code)]
 pub struct Dispatcher {
     store: Store,
-    component_reciever: Receiver<Action>,
-    controller_sender: Sender<Action>,
-    controller_reciever: Receiver<Action>,
+    component_reciever: UnboundedReceiver<Action>,
+    controller_sender: UnboundedSender<Action>,
+    controller_reciever: UnboundedReceiver<Action>,
 }
 
 impl Dispatcher {

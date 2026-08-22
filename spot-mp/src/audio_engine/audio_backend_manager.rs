@@ -3,7 +3,8 @@ use crate::audio_engine::{librespot_backend::LibrespotBackend, rodio_backend::Ro
 use crate::domain::audio_messages::{Messages, Event, ActiveBackend};
 use crate::domain::auth_models::LibrespotData;
 use log::error;
-use std::sync::mpsc::{self, Receiver, Sender};
+use tokio::sync::mpsc::{UnboundedSender, UnboundedReceiver};
+use tokio::time::timeout;
 use std::time::Duration;
 use crate::domain::audio_messages::AudioSource;
 use crate::domain::spot_mp_errors::SpotMpError;
@@ -12,12 +13,12 @@ pub struct AudioBackendManager {
     current_backend: Option<ActiveBackend>,
     spotify_backend: Option<LibrespotBackend>,
     rodio_backend: RodioBackend,
-    receiver: Receiver<Messages>,
-    sender: Sender<Event>,
+    receiver: UnboundedReceiver<Messages>,
+    sender: UnboundedSender<Event>,
 }
 
 impl AudioBackendManager {
-    pub fn new(receiver: Receiver<Messages>, sender: Sender<Event>) -> Self {
+    pub fn new(receiver: UnboundedReceiver<Messages>, sender: UnboundedSender<Event>) -> Self {
         Self {
             current_backend: None,
             spotify_backend: None,
@@ -50,8 +51,8 @@ impl AudioBackendManager {
 
             loop {
                 // Check if we receive a message and do something
-                match self.receiver.recv_timeout(Duration::from_millis(100)) {
-                    Ok(message) => match message {
+                match timeout(Duration::from_millis(100), self.receiver.recv()).await {
+                    Ok(Some(message)) => match message {
                         Messages::Play(source) => {
                             match self.play(source) {
                                 Ok(_) => {
@@ -89,7 +90,10 @@ impl AudioBackendManager {
                             self.logout_librespot();
                         }
                     },
-                    Err(mpsc::RecvTimeoutError::Timeout) => {
+                    Ok(None) => {
+                        break;
+                    }
+                    Err(_) => {
                         if is_playing && self.is_finished() {
                             is_playing = false;
                             if let Err(e) = self.stop() {
@@ -99,9 +103,6 @@ impl AudioBackendManager {
                                 error!("{}", e);
                             }
                         }
-                    },
-                    Err(mpsc::RecvTimeoutError::Disconnected) => {
-                        break; 
                     }
                 }
             }

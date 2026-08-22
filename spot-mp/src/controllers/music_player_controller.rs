@@ -1,4 +1,4 @@
-use std::sync::mpsc::{self, Receiver, Sender};
+use tokio::sync::mpsc;
 use std::collections::VecDeque;
 use log::error;
 use rand::RngExt;
@@ -9,8 +9,8 @@ use crate::domain::{audio_messages::{Event, Messages}, song::Song, playback_flow
 use crate::audio_engine::audio_backend_manager::AudioBackendManager;
 
 pub struct MusicPlayerController {
-    reciever: Receiver<Event>,
-    sender: Sender<Messages>,
+    reciever: mpsc::UnboundedReceiver<Event>,
+    sender: mpsc::UnboundedSender<Messages>,
     now_playing: Option<Song>,
     queue: VecDeque<Song>,
     memory: VecDeque<Song>,
@@ -26,8 +26,8 @@ impl Default for MusicPlayerController {
 impl MusicPlayerController {
     // --- Constructor --- 
     pub fn new() -> Self {
-        let (m_sender, m_reciever): (mpsc::Sender<Messages>, mpsc::Receiver<Messages>) = mpsc::channel();
-        let (e_sender, e_reciever): (mpsc::Sender<Event>, mpsc::Receiver<Event>) = mpsc::channel();
+        let (m_sender, m_reciever): (mpsc::UnboundedSender<Messages>, mpsc::UnboundedReceiver<Messages>) = mpsc::unbounded_channel();
+        let (e_sender, e_reciever): (mpsc::UnboundedSender<Event>, mpsc::UnboundedReceiver<Event>) = mpsc::unbounded_channel();
 
         // Initialize and Start the audio engine
         let audio_engine = AudioBackendManager::new(m_reciever, e_sender);
@@ -84,10 +84,10 @@ impl MusicPlayerController {
                     }
                 }
             },
-            Err(mpsc::TryRecvError::Disconnected) => {
+            Err(mpsc::error::TryRecvError::Disconnected) => {
                 panic!("The connection between MusicPlayerController and AudioBackendManager dissapear!");
             },
-            Err(mpsc::TryRecvError::Empty) => {
+            Err(mpsc::error::TryRecvError::Empty) => {
                 Action::NoOp
             },
         }
