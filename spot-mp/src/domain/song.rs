@@ -35,17 +35,14 @@ impl Song {
             song,
         }
     }
-    pub fn get_song_name(&self) -> String {
-        self.song_name.clone()
-    }
     pub fn id_song(&self) -> i64 {
         self.id_song.unwrap()
     }
     pub fn set_id_song(&mut self, id: i64) {
         self.id_song = Some(id);
     }
-    pub fn song_name(&self) -> String {
-        self.song_name.clone()
+    pub fn song_name(&self) -> &str {
+        &self.song_name
     }
     pub fn duration(&self) -> i64 {
         self.duration

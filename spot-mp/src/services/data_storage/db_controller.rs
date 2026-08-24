@@ -127,7 +127,7 @@ impl DBController {
         
         let mut song_statement = self.connection.prepare(song_query)?;
         
-        song_statement.bind((1, song.get_song_name().as_str()))?;
+        song_statement.bind((1, song.song_name()))?;
         song_statement.bind((2, song.duration()))?;
         // sqlite doesn't have native boolean so we store 1 or 0
         match song.is_local() {
@@ -248,6 +248,25 @@ impl DBController {
         }
 
         Ok(songs)
+    }
+
+    pub fn remove_song_from_playlist(&mut self, playlist_id: i64, song_id: i64) -> Result<(), SpotMpError> {
+        let query = "DELETE FROM Playlist_Song WHERE ID_playlist = ? AND ID_song = ?";
+
+        let mut stmt = self.connection.prepare(query)?;
+
+        stmt.bind((1, playlist_id))?;
+        stmt.bind((2, song_id))?;
+            
+        if let Ok(sqlite::State::Done) = stmt.next() {
+            Ok(())
+        }
+        else {
+            Err(SpotMpError::SQLite(sqlite::Error {
+                code: None,
+                message: Some(format!("Could not remove the song with the id {} in playlist with {} ID.", song_id, playlist_id)),
+            }))
+        }
     }
 }
 

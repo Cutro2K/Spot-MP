@@ -1,4 +1,4 @@
-use crate::domain::{auth_models::LibrespotData, song::Song};
+use crate::domain::{auth_models::LibrespotData, playlist::Playlist, song::Song};
 
 pub enum Action {
     Local(LocalAction),
@@ -9,7 +9,12 @@ pub enum Action {
 }
 
 pub enum LocalAction {
-
+    FetchedPlaylists(Vec<Playlist>),
+    FetchedSongs(Vec<Song>),
+    CreatedPlaylist(Playlist),
+    DeletedPlaylist(String), // Playlist id
+    AddedSongTo(Song, String), // song -> PlaylistId
+    ErasedSongFrom(i64, String), // song -> PlaylistId
 }
 
 pub enum SpotifyAction {
@@ -21,3 +26,5 @@ pub enum MusicPlayerAction {
     StartPlayingSong(Song), 
     LibrespotInitialized(LibrespotData),
 }
+
+
