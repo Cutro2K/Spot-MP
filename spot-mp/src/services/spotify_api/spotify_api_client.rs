@@ -42,7 +42,7 @@ impl SpotifyApiClient {
     }
     pub fn refresh_token(&self) -> Option<&str> {
         match &self.refresh_token {
-            Some(token) => Some(token),
+        Some(token) => Some(token),
             None => None,
         }
     }
@@ -149,7 +149,7 @@ impl SpotifyApiClient {
                     let playlist_id = item.id;
 
                     future_peticions.push( async move {
-                        let songs = self.get_playlist_tracks(&playlist_id).await?;
+                let songs = self.get_playlist_tracks(&playlist_id).await?;
 
                         Ok::<Playlist, SpotMpError>(Playlist::new(
                                 songs, 
@@ -299,6 +299,10 @@ impl SpotifyApiClient {
                 _ => Err(SpotMpError::SpotifyErrorStatus(Status::Unknown(status_code, code_text))),
             }
         }
+    }
+    pub fn logout(&mut self) {
+        self.access_token = None;
+        self.refresh_token = None;
     }
 
     // --- Function 2: Renew access token --- 

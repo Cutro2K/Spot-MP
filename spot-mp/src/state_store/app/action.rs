@@ -13,12 +13,28 @@ pub enum LocalAction {
     FetchedSongs(Vec<Song>),
     CreatedPlaylist(Playlist),
     DeletedPlaylist(String), // Playlist id
-    AddedSongTo(Song, String), // song -> PlaylistId
-    ErasedSongFrom(i64, String), // song -> PlaylistId
+    AddedSongTo(Song, String), // song -> Playlist Id
+    ErasedSongFrom(i64, String), // song -> Playlist Id
 }
 
 pub enum SpotifyAction {
+    LoggedIn,
+    LoggedOut,
+    UserIsLoggedOut,
+    ExpiredToken(FunctionToRepeat),
+    FetchedPlaylists(Vec<Playlist>),
+    AddedSongTo(Song, String), // Playlist Id
+    RemovedSongFrom(Song, String), // Playlist Id
+    PlaylistCreatedWith(Playlist, Option<Song>), 
+    QueryResult(Vec<Song>),
+}
 
+pub enum FunctionToRepeat {
+    FetchedPlaylists,
+    RemoveSongTo(Song, String), // Playlist Id
+    AddSongTo(Song, String), // Playlist Id
+    CreatePlaylistWith(String, bool, Option<Song>), // Playlist Name | Public | Optional Song to add
+    SearchQuery(String), // Query
 }
 
 pub enum MusicPlayerAction {
