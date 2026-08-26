@@ -88,13 +88,31 @@ pub struct AlbumTrackItem {
 
 // --- Search Song Response --- 
 #[derive(Deserialize, Debug)]
-pub struct SearchSongResponse {
-    pub tracks: SearchTracks,    
+pub struct SearchQueryResponse {
+    pub tracks: SearchTracks,
+    pub albums: SearchAlbums,
+    pub playlists: SearchPlaylists,
 }
 #[derive(Deserialize, Debug)]
 pub struct SearchTracks {
     pub next: Option<String>,
     pub items: Vec<TrackItem>,
+}
+#[derive(Deserialize, Debug)]
+pub struct SearchAlbums {
+    pub next: Option<String>,
+    pub items: Vec<AlbumItem>
+}
+#[derive(Deserialize, Debug)]
+pub struct SearchPlaylists {
+    pub next: Option<String>,
+    pub items: Vec<PlaylistSearchItem>,
+}
+#[derive(Deserialize, Debug)]
+pub struct PlaylistSearchItem {
+    pub name: String,
+    pub id: String,
+    pub images: Vec<Image>,
 }
 #[derive(Deserialize, Debug)]
 pub struct TrackItem {

@@ -72,7 +72,7 @@ impl SpotifyController {
         Action::Spotify(SpotifyAction::FetchedPlaylists(playlists))
     }
 
-    pub async fn search(&self, query: &str) -> Action {
+    pub async fn search_query(&self, query: &str) -> Action {
         if !self.logged_in {
             return Action::NoOp;
         }
@@ -81,7 +81,7 @@ impl SpotifyController {
             return Action::Spotify(SpotifyAction::UserIsLoggedOut);
         }
 
-        match self.client.search_song(query).await {
+        match self.client.search_query(query).await {
             Ok(result) => {
                 Action::Spotify(SpotifyAction::QueryResult(result)) 
             }

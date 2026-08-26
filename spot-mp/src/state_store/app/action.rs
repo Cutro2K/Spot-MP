@@ -1,4 +1,4 @@
-use crate::domain::{auth_models::LibrespotData, playlist::Playlist, song::Song};
+use crate::{domain::{auth_models::LibrespotData, playlist::Playlist, song::Song}, services::spotify_api::spotify_api_client::SpotifySearchResponse};
 
 pub enum Action {
     Local(LocalAction),
@@ -26,7 +26,7 @@ pub enum SpotifyAction {
     AddedSongTo(Song, String), // Playlist Id
     RemovedSongFrom(Song, String), // Playlist Id
     PlaylistCreatedWith(Playlist, Option<Song>), 
-    QueryResult(Vec<Song>),
+    QueryResult(Vec<SpotifySearchResponse>),
 }
 
 pub enum FunctionToRepeat {

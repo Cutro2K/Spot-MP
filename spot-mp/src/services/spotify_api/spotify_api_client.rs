@@ -2,14 +2,20 @@ use log::error;
 use reqwest::{Client};
 use std::{collections::HashMap};
 use webbrowser;
-use futures::future::try_join_all;
+use futures::future::{join, join_all, try_join_all};
 use futures::try_join;
 use serde_json::json;
-use crate::services::spotify_api::models::{GetAlbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, SearchSongResponse, SpotifyTokenResponse, PlaylistItem};
+use crate::services::spotify_api::models::{GetAlbumSongsResponse, GetPlaylistSongsResponse, GetUserAlbumsRespose, GetUserPlaylistsResponse, PlaylistItem, SearchQueryResponse, SpotifyTokenResponse};
 use crate::domain::song::{Song, SongOrigin, SpotifySongData};
 use crate::domain::playlist::{Playlist, PlaylistOrigin, SpotifyPlaylistData};
 use crate::services::spotify_api::{spotify_auth::SpotifyAuth, auth_callback_server::AuthCallbackServer};
 use crate::domain::spot_mp_errors::{SpotMpError, Status};
+
+pub enum SpotifySearchResponse {
+    Song(Song),
+    Playlist(Playlist),
+    Album(Playlist),
+}
 
 pub struct SpotifyApiClient {
     access_token: Option<String>,
@@ -68,7 +74,7 @@ impl SpotifyApiClient {
                             None, 
                             item.item.name, 
                             (item.item.duration_ms/1000).into(), 
-                             item.item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png")), // I have to change this
+                            item.item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png")), // I have to change this
                            SongOrigin::Spotify(SpotifySongData {spotify_id: item.item.id})
                             ));                   
                 }
@@ -128,7 +134,7 @@ impl SpotifyApiClient {
         Ok(result)
     }
     
-    // -- Import Liked Playlist --
+    // -- Imphttps://i.scdn.co/image/ab67616d0000b273e4aaeab8b89233708ba856b9ort Liked Playlist --
     async fn import_liked_playlist(&self, client_id: &str) -> Result<Vec<Playlist>, SpotMpError> {
         let mut result: Vec<Playlist> = Vec::new();
         let mut next_url = Some("https://api.spotify.com/v1/me/playlists?limit=50".to_string());    
@@ -358,25 +364,71 @@ impl SpotifyApiClient {
     }
     
     // --- Function 4: Search song whit a specific query ---
-    pub async fn search_song(&self, query: &str) -> Result<Vec<Song>, SpotMpError> {
-        let mut result = Vec::new();
-        let url = format!("https://api.spotify.com/v1/search?q={}&type=track&limit=6&offset=6", query);
+    pub async fn search_query(&self, query: &str) -> Result<Vec<SpotifySearchResponse>, SpotMpError> {
+        let mut result:  Vec<SpotifySearchResponse> = Vec::new();
+        let url = format!("https://api.spotify.com/v1/search?q={}&type=track%2Calbum%2Cplaylist&limit=3&offset=3", query);
         let token = self.access_token.as_ref().expect("The access token is missing!");
        
         let response = self.client.get(&url).bearer_auth(token).send().await?;
 
         if response.status().is_success() {
-            let search_response = response.json::<SearchSongResponse>().await?;
+            let search_response = response.json::<SearchQueryResponse>().await?;
             
             for item in search_response.tracks.items {
-                result.push(Song::new(
+                result.push(SpotifySearchResponse::Song(Song::new(
                     None,
                     item.name.clone(),
                     (item.duration_ms/1000).into(),
                     item.album.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png")), // I have to change this
                     SongOrigin::Spotify(SpotifySongData { spotify_id: item.id }),
-                ));
+                )));
             }
+
+            let mut future_peticions_album = Vec::new();
+            let mut future_peticions_playlist = Vec::new();
+
+            for item in search_response.albums.items {
+                let name = item.name.clone();
+                let album_id = item.id;
+                let img_path = item.images.first().map(|img| img.url.clone()).unwrap_or_else(|| String::from("/home/cutro2k/Documents/Projects/Spot-MP/spot-mp/assets/images/broken-image.png"));
+
+                future_peticions_album.push( async move {
+                    let songs = self.get_album_tracks(&album_id, &img_path).await?;
+
+                    Ok::<Playlist, SpotMpError>(Playlist::new( 
+                            songs, 
+                            false, 
+                            name, 
+                            PlaylistOrigin::Spotify(SpotifyPlaylistData { id_playlist: album_id })
+                    ))
+                });
+            }
+
+            for item in search_response.playlists.items {
+                    let name = item.name.clone();
+                    let playlist_id = item.id;
+
+                    future_peticions_playlist.push( async move {
+                        let songs = self.get_playlist_tracks(&playlist_id).await?;
+
+                        Ok::<Playlist, SpotMpError>(Playlist::new(
+                                songs, 
+                                false, 
+                                name, 
+                                PlaylistOrigin::Spotify(SpotifyPlaylistData { id_playlist: playlist_id })
+                        ))
+                    });
+            }
+
+
+            let albums_tasks = join_all(future_peticions_album);
+            let playlists_tasks = join_all(future_peticions_playlist);
+
+            // Exec all api calls async
+            let (albums_results, playlists_results) = join(albums_tasks, playlists_tasks).await;
+            
+            let mut all_results = albums_results;
+            all_results.extend(playlists_results);
         }
         else {
             let status_code = response.status().as_u16();
