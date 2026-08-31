@@ -9,15 +9,25 @@ pub enum Action {
 }
 
 pub enum LocalAction {
+    FetchPlaylists,
+    FetchSongs,
+    CreatePlaylist(String), // Playlist id
+    DeletePlaylist(i64),
+    AddSongTo(Song, i64), // song -> Playlist id
+    EraseSongFrom(i64, i64), // song_id -> Playlist id
+                            
+    // Response Actions | controllers -> Dispatcher
     FetchedPlaylists(Vec<Playlist>),
     FetchedSongs(Vec<Song>),
     CreatedPlaylist(Playlist),
-    DeletedPlaylist(String), // Playlist id
-    AddedSongTo(Song, String), // song -> Playlist Id
-    ErasedSongFrom(i64, String), // song -> Playlist Id
+    DeletedPlaylist(i64), // Playlist id
+    AddedSongTo(Song, i64), // song -> Playlist Id
+    ErasedSongFrom(i64, i64), // song_id -> Playlist Id
 }
 
 pub enum SpotifyAction {
+
+    // Response Actions | controllers -> Dispatcher
     LoggedIn,
     LoggedOut,
     UserIsLoggedOut,
@@ -30,6 +40,8 @@ pub enum SpotifyAction {
 }
 
 pub enum FunctionToRepeat {
+
+    // Response Actions | controllers -> Dispatcher
     FetchedPlaylists,
     RemoveSongTo(Song, String), // Playlist Id
     AddSongTo(Song, String), // Playlist Id
@@ -38,6 +50,8 @@ pub enum FunctionToRepeat {
 }
 
 pub enum MusicPlayerAction {
+    
+    // Response Actions | controllers -> Dispatcher
     SongFinished,
     StartPlayingSong(Song), 
     LibrespotInitialized(LibrespotData),
