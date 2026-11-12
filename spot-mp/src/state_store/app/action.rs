@@ -1,5 +1,11 @@
-use crate::{domain::{auth_models::LibrespotData, playlist::Playlist, song::Song}, services::spotify_api::spotify_api_client::SpotifySearchResponse};
+use crate::domain::{
+    auth_models::LibrespotData,
+    playback_flow::PlaybackFlow,
+    playlist::{Playlist, SpotifySearchResponse},
+    song::Song,
+};
 
+#[derive(Debug, Clone)]
 pub enum Action {
     Local(LocalAction),
     Spotify(SpotifyAction),
@@ -8,53 +14,78 @@ pub enum Action {
     UnexpectedErrorHappened(String), // Error description
 }
 
+#[derive(Debug, Clone)]
 pub enum LocalAction {
+    // Task Actions | Dispatcher -> ControllerHub
     FetchPlaylists,
     FetchSongs,
-    CreatePlaylist(String), // Playlist id
-    DeletePlaylist(i64),
-    AddSongTo(Song, i64), // song -> Playlist id
+    CreatePlaylist(String),  // Playlist name
+    DeletePlaylist(i64),     // Playlist id
+    AddSongTo(Song, i64),    // song -> Playlist id
     EraseSongFrom(i64, i64), // song_id -> Playlist id
-                            
-    // Response Actions | controllers -> Dispatcher
+
+    // Response Actions | Controllers -> Dispatcher
     FetchedPlaylists(Vec<Playlist>),
     FetchedSongs(Vec<Song>),
     CreatedPlaylist(Playlist),
-    DeletedPlaylist(i64), // Playlist id
-    AddedSongTo(Song, i64), // song -> Playlist Id
+    DeletedPlaylist(i64),     // Playlist id
+    AddedSongTo(Song, i64),   // song -> Playlist Id
     ErasedSongFrom(i64, i64), // song_id -> Playlist Id
 }
 
+#[derive(Debug, Clone)]
 pub enum SpotifyAction {
+    // Task Actions | Dispatcher -> ControllerHub
+    LoggIn(String), // Spotify ClientId
+    LoggOut,
+    RenewToken,
+    FetchPlaylists,
+    SearchQuery(String),                         // String Query
+    AddSongTo(String, Song),                     // PlaylistId, Song
+    EraseSongFrom(String, Song),                 // PlaylistId, Song
+    CreatePlaylist(String, bool, Option<Song>),  // PlaylistName, Public Boolean, Optional initial song
+    DeletePlaylist(String),                      // PlaylistId (Unfollow)
 
-    // Response Actions | controllers -> Dispatcher
+    // Response Actions | ControllerHub -> Dispatcher
     LoggedIn,
     LoggedOut,
     UserIsLoggedOut,
     ExpiredToken(FunctionToRepeat),
     FetchedPlaylists(Vec<Playlist>),
-    AddedSongTo(Song, String), // Playlist Id
+    AddedSongTo(Song, String),     // Playlist Id
     RemovedSongFrom(Song, String), // Playlist Id
-    PlaylistCreatedWith(Playlist, Option<Song>), 
+    PlaylistCreatedWith(Playlist, Option<Song>),
+    DeletedPlaylist(String),       // Playlist Id
     QueryResult(Vec<SpotifySearchResponse>),
 }
 
+#[derive(Debug, Clone)]
 pub enum FunctionToRepeat {
-
-    // Response Actions | controllers -> Dispatcher
+    // Response Actions | ControllerHub -> Dispatcher
     FetchedPlaylists,
     RemoveSongTo(Song, String), // Playlist Id
-    AddSongTo(Song, String), // Playlist Id
+    AddSongTo(Song, String),    // Playlist Id
     CreatePlaylistWith(String, bool, Option<Song>), // Playlist Name | Public | Optional Song to add
-    SearchQuery(String), // Query
+    DeletePlaylist(String),     // Playlist Id
+    SearchQuery(String),        // Query
 }
 
+#[derive(Debug, Clone)]
 pub enum MusicPlayerAction {
-    
-    // Response Actions | controllers -> Dispatcher
+    // Task Actions | Dispatcher -> ControllerHub
+    PlaySong(Song),
+    PlayPlaylist(Vec<Song>),
+    AddToQueue(Song),
+    EraseFromQueue(String),
+    ClearQueue,
+    TogglePause,
+    Seek(u32),
+    SkipToNext,
+    SkipToPrevious,
+    ChangeFlow(PlaybackFlow),
+
+    // Response Actions | ControllerHub -> Dispatcher
     SongFinished,
-    StartPlayingSong(Song), 
+    StartPlayingSong(Song),
     LibrespotInitialized(LibrespotData),
 }
-
-

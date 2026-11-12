@@ -39,14 +39,14 @@
     &nbsp;Al estar reproduciendo una canción de spotify, se debe mostrar un apartado en la parte derecha de la pagina donde se muestre información sobre el Album, como su Imagen, Autores, fecha de emisión, y una lista de canciones por las cuales podremos navegar, agregar a playlist y reproducirlas.
 * **Playlist de Spotify:**
     &nbsp;En esta página se presentara un apartado de playlist que son exclusivamente de Spotify, respetando el diseño de playlist (Arbol con canciones como hojas) y permitiendo al usuario reproducir, agregar a cola y agregar a otras playlists para las canciones dentro de las  mismas.
-    &nbsp;Ademas, en la parte superior de esta lista debe presentarse un linea/ListaVacia que represente un boton para crear una nueva lista. Ademas de por cada playlist debe presentarse un botón para su eliminación que desencadenara en la eliminación de la playlist en spotify, para esto se presentara un pequeño cartel de confirmación.
+    &nbsp;Ademas, en la parte superior de esta lista debe presentarse un linea/ListaVacia que represente un boton para crear una nueva lista en Spotify. Ademas de por cada playlist debe presentarse un botón para su eliminación que desencadenara en dejar de seguir (*unfollow*) o remover la playlist en el perfil de Spotify mediante su API; para esto se presentara un pequeño cartel de confirmación.
 * **Desconectarse de Spotify:**
-    &nbsp;Debe presentarse un boton para desloguearte de spotify, esto incluye eliminar las credenciales ingresadas (Client-Id y Client-Secret, Tokens). Para esto se presentara un pequeño cartel de confirmación.
+    &nbsp;Debe presentarse un boton para desloguearte de spotify, esto incluye eliminar las credenciales y sesiones almacenadas localmente (`Client-Id`, tokens de acceso/refresco de la Web API y credenciales de `librespot`). Para esto se presentara un pequeño cartel de confirmación.
 
 #### Pero Antes de Lograr Todo Eso:
 
-&nbsp;Para realizar una conexión con la API de spotify requerimos un inicio de sesión con diferentes campos y una configuración del **Spotify Developer Dashboard**.
-&nbsp;Primeramente al iniciar la aplicación por primera vez, solamente apareceran funcionales las páginas de local y playlist, si el usuario ingresa a la página de Spotify vera un formulario de inicio de sesión con dos campos **Client-Id** y **Client-Secret**. Pero sobre este formulario debera aparecer un aviso que antes de iniciar sesión el usuario debe configurar el **Spotify Developer Dashboard** siguiendo el tutorial explicado en un link que redirecciona al github de Spot-MP donde se explicara paso a paso la configuración.
+&nbsp;Para realizar una conexión con la API de spotify requerimos un inicio de sesión mediante el flujo **OAuth2 con PKCE** y una configuración previa del **Spotify Developer Dashboard**.
+&nbsp;Primeramente al iniciar la aplicación por primera vez, solamente apareceran funcionales las páginas de local y playlist, si el usuario ingresa a la página de Spotify vera un formulario de inicio de sesión con el campo **Client-Id** (al utilizar PKCE para aplicaciones de escritorio, no se solicita ni expone el `Client-Secret`). Pero sobre este formulario debera aparecer un aviso que antes de iniciar sesión el usuario debe configurar el **Spotify Developer Dashboard** (incluyendo el Redirect URI `http://127.0.0.1:8888/callback`) siguiendo el tutorial explicado en un link que redirecciona al github de Spot-MP donde se explicara paso a paso la configuración.
 
 ---
 ### 📄 Pagina de Playlists:
@@ -85,13 +85,16 @@
 
 #### 🔗 Flujo de canciones:
 
-&nbsp;Ya que puedes escuchar de manera alternada canciones de Spotify y locales, se debe tener en cuenta un flujo especial de canciones.
+&nbsp;Ya que puedes escuchar de manera alternada canciones de Spotify y locales, el reproductor separa la gestión en tres estructuras: **Cola de Prioridad (`user_queue`)**, **Lista de Contexto/Playlist (`playlist_queue`)** e **Historial (`memory`)**.
 
-* **Escuchando una Playlist:**
-    &nbsp;Si se inicia la reproducción desde una playlist ya sea desde el botón de reproducción de la playlist, o de una canción de manera interna a ella desde la pantalla de playlist. Se debe reproducir de manera ordenada desde esa canción reproducida en adelante.
-    * **Flujo Random:** Si se tiene activado el flujo random, se debe generar una lista enlacada aleatoria de canciones contenidas en la playlist para asegurarse de que toda canción reproducida de aquí en adelante sea diferente a las anteriores. 
-    * **Flujo Normal:** En este caso simplemente se sigue con la reproducción ordenada de la playlist.
+* **Cola de reproducción (`user_queue` - Prioridad Máxima):**
+    &nbsp;La cola de reproducción manual tiene la prioridad más alta del sistema. Si el usuario agrega canciones manualmente a la cola mientras escucha una playlist o una canción simple, al avanzar a la siguiente pista se extraerán primero las canciones de `user_queue` en orden FIFO antes de retomar el flujo de la playlist o el modo de repetición.
+* **Escuchando una Playlist (`playlist_queue`):**
+    &nbsp;Si se inicia la reproducción desde una playlist (ya sea desde el botón general de la playlist o seleccionando una canción interna), las canciones restantes a partir de ese punto conforman la `playlist_queue`.
+    * **Flujo Normal:** Cuando `user_queue` está vacía, se reproduce secuencialmente la siguiente canción de `playlist_queue`.
+    * **Flujo Random:** Cuando `user_queue` está vacía, se extrae de manera aleatoria una canción de `playlist_queue` sin repetir pistas hasta agotar la lista.
+    * **Flujo En Ciclo:** Cuando `user_queue` está vacía, se repite indefinidamente la canción actual (`now_playing`) sin consumir elementos de `playlist_queue`.
 * **Escuchando una canción simple:** 
-    &nbsp;Si se reproduce una canción desde la página local/ raiz de canciones o desde la pagina de Spotify mediante la barra buscadora solamente se reproducira esa canción y la reproducción se pausara, en caso de que no se haya puesto el **flujo en ciclo** o se hayan puesto canciones **en cola**.
-* **Cola de reproducción:**
-    &nbsp;La cola de reproducción tiene la prioridad mas alta de reproducción, si se encuentra reproduciendo una playlist pero hay una canción externa a ella (o no) en cola de reproducción se tiene que dar prioridad a las que se encuentran en cola.
+    &nbsp;Si se reproduce una canción aislada desde la página local o desde el buscador de Spotify, `playlist_queue` queda vacía. Al finalizar la canción, la reproducción se detendrá salvo que existan canciones en `user_queue` o esté activo el **flujo en ciclo**.
+* **Retroceso a canción anterior (`memory`):**
+    &nbsp;Cada canción reproducida se registra en un historial acotado (`memory`). Si el usuario presiona "Anterior", la canción que estaba sonando (`now_playing`) se re-inserta al frente de `playlist_queue` (sin volver a guardarse en `memory` para evitar bucles $A \leftrightarrow B$) y se reproduce la última canción extraída de `memory`.

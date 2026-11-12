@@ -118,12 +118,12 @@ cargo test --manifest-path spot-mp/Cargo.toml
 
 ## Configuración de Spotify (Opcional)
 
-Para habilitar las funciones de Spotify, necesitarás crear una aplicación en el [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) para obtener tu `Client ID` y `Client Secret`, y configurar la URL de redirección correspondiente para el flujo de autenticación OAuth2 PKCE.
+Para habilitar las funciones de Spotify, necesitarás crear una aplicación en el [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) para obtener tu `Client ID` y configurar la URL de redirección (`http://127.0.0.1:8888/callback`) correspondiente para el flujo de autenticación OAuth2 con PKCE (no se requiere `Client Secret`).
 
 ---
 ## 🤝 Contribuciones
 ¡El proyecto es de código abierto y cualquier sugerencia o idea es bienvenida!
-Sin embargo, **actualmente el repositorio se encuentra en etapa de desarroll**. 
+Sin embargo, **actualmente el repositorio se encuentra en etapa de desarrollo**. 
 Por esta razón:
 - **No se aceptarán *Pull Requests* de código por el momento**, con el fin de consolidar la arquitectura base y las funcionalidades esenciales sin generar conflictos ni inconsistencias.
 - **¿Cómo puedes ayudar mientras tanto?** Si tienes ideas, sugerencias de diseño o mejoras, eres más que bienvenido a abrir un **[Issue](https://github.com/TU_USUARIO/Spot-MP/issues)** para debatirlas.

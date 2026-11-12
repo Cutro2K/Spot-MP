@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Default, Debug, Clone)]
 pub struct SessionData {
+    pub client_id: Option<String>,
     pub web_api: Option<WebApiData>,
     pub librespot: Option<LibrespotData>,
 }

@@ -1,5 +1,6 @@
-use std::path::PathBuf;
 use log::{error, info};
+use std::path::PathBuf;
+
 use crate::{domain::auth_models::SessionData, services::data_storage::auth_storage::AuthStorage};
 
 #[allow(dead_code)]
@@ -10,9 +11,11 @@ pub struct AuthController {
 
 impl AuthController {
     pub fn new(spot_mp_folder_path: PathBuf) -> Self {
+        let auth_storage = AuthStorage::new(spot_mp_folder_path);
+        let session_data = auth_storage.load_session().unwrap_or_default();
         Self {
-            session_data: SessionData::default(),
-            auth_storage: AuthStorage::new(spot_mp_folder_path),
+            session_data,
+            auth_storage,
         }
     }
 
@@ -22,12 +25,12 @@ impl AuthController {
                 info!("The saved data loaded successfully!");
                 self.session_data = session_data.clone();
                 session_data
-            },
+            }
             Err(e) => {
                 error!("Failed retrieving saved credentials: {}", e);
                 info!("Loading default values...");
                 SessionData::default()
-            },
+            }
         }
     }
 
@@ -40,11 +43,13 @@ impl AuthController {
         info!("The session data was saved successfully!");
     }
 
-    pub fn erase_session(&self) {
-        if let Err(e) = self.auth_storage.save_session(SessionData::default()) {
+    pub fn erase_session(&mut self) {
+        let default_session = SessionData::default();
+        if let Err(e) = self.auth_storage.save_session(default_session.clone()) {
             error!("Failed to erase session data saving default values: {}", e);
-            return; 
+            return;
         }
+        self.session_data = default_session;
         info!("The session was deleted successfully!");
     }
 

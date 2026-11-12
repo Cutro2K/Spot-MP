@@ -56,9 +56,9 @@
 | **ID:** 21 |
 | **Breve descripción:** <br> Cuando el usuario interactua con la playlist el sistema va hacia la página de playlist. |
 | **Actores principales:** Usuario |
-| **Actores secundarios:** Sistema |
-| **Precondiciones:** <br>1. El Usuario se encuentra en la pantalla Local Page. <br>2. El usuario tiene seleccionada una playlist.|
-| **Flujo principal:** <br>1. El caso de uso empieza cuando el usuario apreta click o enter cuando se esta seleccionando una playlist. <br>2. El sistema se encarga de cargar la página de playlists. <br>3. El sistema abre la estructura de arbol de la playlist previmente seleccionada. |
+| **Actores secundarios:** Ninguno |
+| **Precondiciones:** <br>1. El Usuario se encuentra en la pantalla Local Page con el modo de agregar canción desactivado. <br>2. El usuario tiene seleccionada una playlist.|
+| **Flujo principal:** <br>1. El caso de uso empieza cuando el usuario apreta click o enter cuando se esta seleccionando una playlist. <br>2. El sistema se encarga de cargar la página de playlists. <br>3. El sistema abre la estructura de arbol de la playlist previamente seleccionada. |
 | **Postcondiciones:** <br> 1. El sistema se encuentra en la pantalla playlists. <br>2. La playlist en cuestion se encuentra desplegada. |
 | **Flujos alternativos:** <br> Ninguno. |
 ---

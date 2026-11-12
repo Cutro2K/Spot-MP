@@ -31,3 +31,7 @@ Thumbs.db
 *~
 Session.vim
 
+# 📚 Internal Documentation & Review Logs
+/docs/
+
+

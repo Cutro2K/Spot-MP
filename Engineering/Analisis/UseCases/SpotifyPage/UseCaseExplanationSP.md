@@ -21,13 +21,13 @@
 | Caso de uso: Log In |
 | --- |
 | **ID:** 10 |
-| **Breve descripción:** <br>El Usuario vincula su cuenta premium para autorizar a la aplicación a controlar su música. |
+| **Breve descripción:** <br>El Usuario vincula su cuenta de Spotify Premium mediante OAuth2 con PKCE y Spotify Connect (`librespot`) para autorizar a la aplicación a consultar su biblioteca y reproducir música. |
 | **Actores principales:** Usuario |
 | **Actores secundarios:** SpotifyAPI |
-| **Precondiciones:** <br> 1. El Usuario posee credenciales válidas de desarrollador (Client-Id y Client-Secret). |
-| **Flujo principal:** <br> 1. El caso de uso empieza cuando el Usuario solicita iniciar sesión. <br>2. El sistema solicita al Usuario sus credenciales de Spotify. <br>3. El Usuario ingresa las credenciales. <br>4. El sistema se comunica con SpotifyAPI para realizar el intercambio de tokens (Authorization Code Flow). <br> 5. SpotifyAPI retorna los tokens de acceso. <br> 6. El sistema guarda los tokens localmente. |
-| **Postcondiciones:** <br>1. El sistema tiene acceso autorizado a los datos privados del Usuario en Spotify. |
-| **Flujos alternativos:** <br> CredencialesInvalidas. |
+| **Precondiciones:** <br> 1. El Usuario posee un `Client-Id` válido configurado en el Spotify Developer Dashboard con el Redirect URI `http://127.0.0.1:8888/callback`. |
+| **Flujo principal:** <br> 1. El caso de uso empieza cuando el Usuario solicita iniciar sesión en la página de Spotify. <br>2. El sistema solicita al Usuario su `Client-Id` de Spotify. <br>3. El Usuario ingresa el `Client-Id`. <br>4. El sistema genera el `code_verifier` y `code_challenge` (PKCE), abre el navegador para autorizar al Usuario y recibe el código en el servidor local de callback. <br> 5. El sistema intercambia el código con SpotifyAPI por el `access_token` y `refresh_token`, e inicializa las credenciales de reproducción en `librespot`. <br> 6. El sistema guarda la sesión (`session.json`) localmente. |
+| **Postcondiciones:** <br>1. El sistema tiene acceso autorizado a la Web API y al motor de streaming de Spotify del Usuario. |
+| **Flujos alternativos:** <br> CredencialesInvalidas, AutorizacionDenegada, TimeoutCallback. |
 
 | Caso de uso: Search Spotify Song |
 | --- |
@@ -47,9 +47,31 @@
 | **Actores principales:** Usuario |
 | **Actores secundarios:** Ninguno |
 | **Precondiciones:** <br> 1. Las playlists han sido importadas exitosamente. |
-| **Flujo principal:** <br> 1. El caso de uso empieza cuando el Usuario selecciona una playlist específica. <br> 2. El sistema muestra las canciones contenidas en forma de lista. <br> punto de extensión: Song Interaction (Play Song, Add song to queue, Manage song). |
+| **Flujo principal:** <br> 1. El caso de uso empieza cuando el Usuario selecciona una playlist específica. <br> 2. El sistema muestra las canciones contenidas en forma de lista. <br> punto de extensión: Playlist Interaction (Delete Playlist) y Song Interaction (Play Song, Add song to queue, Manage song). |
 | **Postcondiciones:** <br> 1. Las canciones de la playlist están visibles en pantalla. |
 | **Flujos alternativos:** <br> Ninguno. |
+
+| Caso de uso: Create Spotify Playlist |
+| --- |
+| **ID:** 37 |
+| **Breve descripción:** <br> El Usuario crea una nueva playlist directamente en su cuenta de Spotify desde la página de Spotify. |
+| **Actores principales:** Usuario |
+| **Actores secundarios:** SpotifyAPI |
+| **Precondiciones:** <br> 1. El Usuario está correctamente logueado con su cuenta de Spotify. |
+| **Flujo principal:** <br> 1. El caso de uso empieza cuando el Usuario acciona el botón superior de crear nueva lista en la página de Spotify. <br> 2. El sistema solicita el nombre de la playlist y si será pública o privada. <br> 3. El sistema envía la petición de creación (`POST /v1/me/playlists`) a SpotifyAPI. <br> 4. SpotifyAPI confirma la creación y retorna los datos de la nueva lista. <br> 5. El sistema agrega la nueva playlist a la memoria y actualiza la interfaz. |
+| **Postcondiciones:** <br> 1. Una nueva playlist de Spotify ha sido creada en el perfil del Usuario y es visible en la aplicación. |
+| **Flujos alternativos:** <br> CreacionCancelada, FallaDeConexion. |
+
+| Caso de uso: Log Out |
+| --- |
+| **ID:** 38 |
+| **Breve descripción:** <br> El Usuario cierra su sesión de Spotify, eliminando las credenciales y tokens almacenados localmente. |
+| **Actores principales:** Usuario |
+| **Actores secundarios:** Ninguno |
+| **Precondiciones:** <br> 1. El Usuario tiene una sesión activa de Spotify en la aplicación. |
+| **Flujo principal:** <br> 1. El caso de uso empieza cuando el Usuario presiona el botón de cerrar sesión (Log out). <br> 2. include(User Confirmation). <br> 3. El sistema detiene y desconecta el backend de `librespot`, limpia los tokens de la Web API en memoria y borra los datos de `session.json`. <br> 4. El sistema actualiza la vista de Spotify mostrando nuevamente el formulario de inicio de sesión. |
+| **Postcondiciones:** <br> 1. La sesión de Spotify y sus credenciales locales han sido eliminadas del sistema. |
+| **Flujos alternativos:** <br> AccionCancelada. |
 
 ---
 
@@ -157,10 +179,10 @@
 |Caso de uso de extensión: Delete Playlist|
 |---|
 |**ID:** 23|
-|**Breve descripción:**<br> Segmento 1: El Usuario decide borrar por completo una playlist desde la vista de spotify.|  
+|**Breve descripción:**<br> Segmento 1: El Usuario decide eliminar (dejar de seguir / *unfollow*) una playlist desde la vista de Spotify.|  
 |**Actores principales:** Usuario|
 |**Actores secundarios:** SpotifyAPI|
 |**Segmento 1 precondiciones:**<br> 1. El Usuario se encuentra interactuando con una playlist específica en la lista.|  
-|**Segmento 1 flujo:**<br> 1. El Usuario presiona el botón de eliminar correspondiente a la playlist seleccionada.<br>2. include(User Confirmation).<br>3. El sistema solicita a SpotifyAPI la eliminación de la playlist.<br>4. El sistema actualiza la interfaz removiendo la playlist de la lista visual.|  
-|**Segmento 1 postcondiciones:**<br> 1. La playlist deja de existir en el almacenamiento local y en el perfil de Spotify del Usuario.|
+|**Segmento 1 flujo:**<br> 1. El Usuario presiona el botón de eliminar correspondiente a la playlist seleccionada.<br>2. include(User Confirmation).<br>3. El sistema solicita a SpotifyAPI dejar de seguir la playlist (`DELETE /v1/playlists/{playlist_id}/followers`).<br>4. El sistema actualiza la interfaz removiendo la playlist de la lista visual y de la memoria.|  
+|**Segmento 1 postcondiciones:**<br> 1. La playlist deja de existir en la sesión local y deja de estar seguida en el perfil de Spotify del Usuario.|
 

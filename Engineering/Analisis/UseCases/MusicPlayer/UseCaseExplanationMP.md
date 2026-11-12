@@ -35,19 +35,19 @@
 | **Actores principales:** Usuario |
 | **Actores secundarios:** Ninguno |
 | **Precondiciones:** <br> 1. El reproductor se encuentra activo. |
-| **Flujo principal:** <br> 1. El caso de uso empieza cuando el Usuario interactúa con el botón de control de flujo. <br> 2. El sistema cambia al siguiente estado disponible (Ej: Normal -> Random -> En Ciclo).<br> 3. El sistema reconfigura la lista de próximas canciones basándose en el nuevo estado (ej. generando una lista enlazada aleatoria si se activa Random).|
-| **Postcondiciones:** <br> 1. El motor de reproducción actualiza sus reglas para determinar cuál será la siguiente canción. |
+| **Flujo principal:** <br> 1. El caso de uso empieza cuando el Usuario interactúa con el botón de control de flujo. <br> 2. El sistema cambia al siguiente estado disponible (Ej: Normal -> Random -> En Ciclo).<br> 3. El sistema actualiza la regla de selección sobre la cola de contexto (`playlist_queue`), manteniendo intacta la prioridad de la cola manual (`user_queue`).|
+| **Postcondiciones:** <br> 1. El motor de reproducción actualiza sus reglas para determinar cuál será la siguiente canción cuando la cola de prioridad esté vacía. |
 | **Flujos alternativos:** <br> Ninguno. |
 
 | Caso de uso: Skip to Previous Song |
 | ------ |
 | **ID:** 34 |
-| **Breve descripción:** <br> El sistema retrocede a la canción anterior basándose en la lista doblemente enlazada de reproducción, desencadenado por acción manual del Usuario.|
+| **Breve descripción:** <br> El sistema retrocede a la canción anterior almacenada en el historial de reproducción (`memory`), desencadenado por acción manual del Usuario.|
 | **Actores principales:** Usuario. |
 | **Actores secundarios:** Ninguno |
 | **Precondiciones:** <br> 1. El Usuario acciona el botón de "Anterior". |
-| **Flujo principal:** <br> 1. El sistema evalúa si existen canciones anteriores en la **Lista de reproducción.**<br> 2. Si hay canciones en la lista, el sistema extrae y la reproduce.<br> 3. Si el sistema se encuentra en la primer cancion de la lista de reproducción no hace nada.|
-| **Postcondiciones:** <br> 1. El reproductor carga e inicia la pista anterior correspondiente, o sigue con su reproducción normalmente de la canción actual. |
+| **Flujo principal:** <br> 1. El sistema evalúa si existen canciones previas en el **Historial de reproducción (`memory`)**.<br> 2. Si existen canciones en `memory`, el sistema extrae la más reciente, re-inserta la canción actual (`now_playing`) al inicio de la lista de contexto (`playlist_queue`) sin volver a agregarla a `memory`, e inicia la reproducción de la pista anterior.<br> 3. Si `memory` está vacío, el sistema no realiza cambios.|
+| **Postcondiciones:** <br> 1. El reproductor carga e inicia la pista anterior correspondiente sin provocar ciclos infinitos en el historial, o continúa normalmente si no hay historial previo. |
 | **Flujos alternativos:** <br> Ninguno. |
 
 | Caso de uso: Skip to Next Song |
@@ -56,9 +56,9 @@
 | **Breve descripción:** <br> El sistema avanza a la siguiente canción basándose en un flujo de prioridades estricto, ya sea de forma automática al terminar la actual o por acción manual del Usuario.|
 | **Actores principales:** Usuario (si es manual), Sistema (si es automático) |
 | **Actores secundarios:** Ninguno |
-| **Precondiciones:** <br> 1. Una canción finaliza su tiempo de duración, o el Usuario acciona el botón de "Siguiente". |
-| **Flujo principal:** <br> 1. El sistema evalúa si existen canciones pendientes en la **Cola de reproducción** (prioridad más alta).<br> 2. Si hay canciones en la cola, el sistema extrae y reproduce la primera.<br> 3. Si la cola está vacía, el sistema verifica si el flujo activo es "En Ciclo"; de ser así, repite la canción actual.<br> 4. Si el flujo es Normal o Random, y se está reproduciendo desde una playlist, el sistema reproduce la siguiente canción de la lista (ordenada o aleatoria según corresponda).<br> 5. Si la reproducción provenía de una canción simple (sin cola ni ciclo), el reproductor se pausa.|
-| **Postcondiciones:** <br> 1. El reproductor carga e inicia la siguiente pista correspondiente, o se detiene si no hay más elementos en el flujo. |
+| **Precondiciones:** <br> 1. Una canción finaliza su tiempo de duración (`Event::Finished`), o el Usuario acciona el botón de "Siguiente". |
+| **Flujo principal:** <br> 1. El sistema evalúa si existen canciones pendientes en la **Cola de prioridad (`user_queue`)** (prioridad más alta).<br> 2. Si hay canciones en `user_queue`, el sistema extrae y reproduce la primera en orden FIFO.<br> 3. Si `user_queue` está vacía y el avance fue automático (`Event::Finished`), el sistema verifica si el flujo activo es "En Ciclo"; de ser así, repite la canción actual (`now_playing`).<br> 4. Si el flujo es Normal o Random (o si el salto fue manual) y existen canciones en la **Cola de contexto (`playlist_queue`)**, el sistema extrae y reproduce la siguiente canción (la primera en modo Normal, o una aleatoria en modo Random) y registra la saliente en `memory`.<br> 5. Si tanto `user_queue` como `playlist_queue` están vacías (y no aplica "En Ciclo"), el reproductor detiene la reproducción.|
+| **Postcondiciones:** <br> 1. El reproductor carga e inicia la siguiente pista correspondiente según la prioridad, o se detiene si no hay más elementos en el flujo. |
 | **Flujos alternativos:** <br> Ninguno. |
 
 | Caso de uso: Add to Playlist (Desde Reproductor) |

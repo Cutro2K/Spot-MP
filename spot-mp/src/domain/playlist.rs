@@ -1,18 +1,29 @@
 use crate::domain::song::Song;
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LocalPlaylistData {
     pub id_playlist: i64,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct SpotifyPlaylistData {
     pub id_playlist: String,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PlaylistOrigin {
     Local(LocalPlaylistData),
     Spotify(SpotifyPlaylistData),
 }
 
+#[derive(Clone, Debug)]
+pub enum SpotifySearchResponse {
+    Song(Song),
+    Playlist(Playlist),
+    Album(Playlist),
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Playlist {
     songs: Vec<Song>,
     is_modifiable: bool,
@@ -21,23 +32,36 @@ pub struct Playlist {
 }
 
 impl Playlist {
-    pub fn new(_songs: Vec<Song>, _is_modifiable: bool, _playlist_name: String, _id_playlist: PlaylistOrigin) -> Self {
+    pub fn new(
+        songs: Vec<Song>,
+        is_modifiable: bool,
+        playlist_name: String,
+        id_playlist: PlaylistOrigin,
+    ) -> Self {
         Self {
-            songs: _songs,
-            is_modifiable: _is_modifiable,
-            playlist_name: _playlist_name,
-            id_playlist: _id_playlist,
+            songs,
+            is_modifiable,
+            playlist_name,
+            id_playlist,
         }
     }
 
-    pub fn playlist_name(&self) -> String {
-        self.playlist_name.clone()
+    pub fn playlist_name(&self) -> &str {
+        &self.playlist_name
     }
 
     pub fn is_modifiable(&self) -> bool {
         self.is_modifiable
     }
-    
+
+    pub fn songs(&self) -> &[Song] {
+        &self.songs
+    }
+
+    pub fn origin(&self) -> &PlaylistOrigin {
+        &self.id_playlist
+    }
+
     pub fn id_playlist(&self) -> String {
         match &self.id_playlist {
             PlaylistOrigin::Local(playlist_data) => playlist_data.id_playlist.to_string(),
@@ -51,6 +75,5 @@ impl Playlist {
 
     pub fn add_song(&mut self, song: Song) {
         self.songs.push(song);
-   }
+    }
 }
-
