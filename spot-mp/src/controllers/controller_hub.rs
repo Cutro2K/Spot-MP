@@ -193,13 +193,31 @@ impl ControllerHub {
 
     pub fn handle_music_player_actions(&mut self, action: MusicPlayerAction) {
         let res_action = match action {
-            MusicPlayerAction::PlaySong(song) => self.music_player_controller.play(song),
+            MusicPlayerAction::PlaySong(song) => {
+                if song.is_local() && !self.local_controller.validate_file_existence(song.song_data())
+                {
+                    Action::UnexpectedErrorHappened(format!(
+                        "The file for {} is no longer available on disk.",
+                        song.song_name()
+                    ))
+                } else {
+                    self.music_player_controller.play(song)
+                }
+            }
             MusicPlayerAction::PlayPlaylist(songs) => {
                 self.music_player_controller.play_playlist(songs)
             }
             MusicPlayerAction::AddToQueue(song) => {
-                self.music_player_controller.add_to_queue(song);
-                Action::NoOp
+                if song.is_local() && !self.local_controller.validate_file_existence(song.song_data())
+                {
+                    Action::UnexpectedErrorHappened(format!(
+                        "The file for {} is no longer available on disk.",
+                        song.song_name()
+                    ))
+                } else {
+                    self.music_player_controller.add_to_queue(song);
+                    Action::NoOp
+                }
             }
             MusicPlayerAction::EraseFromQueue(song_id) => {
                 self.music_player_controller.erase_from_queue(&song_id);
