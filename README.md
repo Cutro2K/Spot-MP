@@ -1,113 +1,113 @@
-# 🎵 Spot-MP
+# Spot-MP
 
-> **Spot-MP** es un reproductor de música interactivo para la terminal (TUI) desarrollado en **Rust**, diseñado para unificar tu biblioteca de música local y tu cuenta de **Spotify** en una experiencia fluida, rápida y navegable tanto por teclado como por mouse.
+> **Spot-MP** is an interactive terminal music player (TUI) built in **Rust**, designed to unify your local music library and your **Spotify** account into a smoother terminal expirience navigable via both keyboard and mouse.
 
-> **Spot-MP** aun se encuentra en fase de desarrollo, todavía no se presenta una versión funcional del sistema. Mi objetivo es tener una version funcional para enero/febrero de 2027.
-
----
-
-## 💡 Idea del Proyecto
-
-La idea principal de **Spot-MP** es resolver la fragmentación entre escuchar música almacenada localmente en tu equipo y reproducir música desde Spotify, todo sin salir de la terminal.
-
-### Características Principales
-
-- **Biblioteca Local:**
-  - Lee, analiza y organiza los archivos de audio a partir de un directorio raíz configurable.
-  - Reproducción directa, adición a cola o incorporación a playlists locales.
-
-- **Integración con Spotify:**
-  - Conexión opcional con tu cuenta de Spotify mediante autenticación OAuth2 con PKCE.
-  - Búsqueda directa de canciones, álbumes y playlists en el catálogo de Spotify usando su API.
-  - Importación y sincronización de playlists y álbumes guardados en tu perfil de Spotify.
-  - Streaming integrado en la terminal mediante `librespot`.
-
-- **Gestión Híbrida de Playlists:**
-  - **Playlists Locales (Mixtas):** Listas creadas en tu base de datos local que pueden contener tanto archivos locales como pistas de Spotify.
-  - **Playlists de Spotify:** Listas sincronizadas directamente con tu perfil de Spotify.
-
-- **Reproductor General y Cola Inteligente:**
-  - Control de reproducción unificado (play/pause, anterior, siguiente, slider de progreso).
-  - Modos de reproducción: **Normal**, **Aleatorio (Random)** y **En Ciclo (Loop)**.
+> **Spot-MP** is still in active development, and a functional release is not available yet. My goal is to have a working version ready by January/February 2027.
 
 ---
 
-## ¿Dónde encontrar el diseño y análisis del proyecto?
+## 💡 Project Idea
 
-Todo el proceso de ingeniería de software, análisis funcional y diseño de arquitectura se encuentra detalladamente documentado en la carpeta [`Engineering/`](./Engineering/):
+The main idea behind **Spot-MP** is to solve the fragmentation between listening to music stored locally on your machine and streaming music from Spotify, all without leaving the terminal.
+
+### Key Features
+
+- **Local Library:**
+  - Reads, parses, and organizes audio files from a configurable root directory.
+  - Direct playback, queuing, or adding tracks to local playlists.
+
+- **Spotify Integration:**
+  - Optional connection to your Spotify account via OAuth2 with PKCE authentication.
+  - Direct search for tracks, albums, and playlists in the Spotify catalog using its Web API.
+  - Import and synchronization of saved playlists and albums from your Spotify profile.
+  - Integrated terminal streaming powered by `librespot`.
+
+- **Hybrid Playlist Management:**
+  - **Local (Mixed) Playlists:** Lists created in your local database that can contain both local audio files and Spotify tracks.
+  - **Spotify Playlists:** Lists synchronized directly with your Spotify profile.
+
+- **Unified Player & Smart Queue:**
+  - Unified playback controls (play/pause, previous, next, progress slider).
+  - Playback modes: **Normal**, **Random (Shuffle)**, and **Loop**.
+
+---
+
+## Where to Find the Project Design and Analysis
+
+The entire software engineering process, functional analysis, and architecture design are documented in detail in the [`Engineering/`](./Engineering/) folder:
 
 ```
 Engineering/
 ├── Analisis/
-│   ├── Idea.md                     # Especificación conceptual detallada y visión del producto
-│   ├── Actores.md                  # Definición de actores del sistema (Usuario, Spotify API)
-│   └── UseCases/                   # Casos de uso funcionales organizados por pantalla:
-│       ├── LocalPage/              # Casos de uso de la vista de música local
-│       ├── PlaylistPage/           # Casos de uso de gestión de playlists
-│       ├── SpotifyPage/            # Casos de uso de la interacción con Spotify
-│       ├── MusicPlayer/            # Casos de uso de los controles de audio
-│       └── viewUseCases.md         # Resumen y mapa de casos de uso
+│   ├── Idea.md                     # Detailed conceptual specification and product vision
+│   ├── Actores.md                  # System actors definition (User, Spotify API)
+│   └── UseCases/                   # Functional use cases organized by screen:
+│       ├── LocalPage/              # Local music view use cases
+│       ├── PlaylistPage/           # Playlist management use cases
+│       ├── SpotifyPage/            # Spotify interaction use cases
+│       ├── MusicPlayer/            # Audio playback controls use cases
+│       └── viewUseCases.md         # Summary and use case map
 └── Design/
     ├── Arquitecture/
-    │   ├── FlowDiagram.png         # Diagrama de flujo global de la arquitectura
-    │   ├── Diagrams.drawio         # Diagramas editables en Draw.io
-    │   └── Backend/                # Diagramas de clases por capa:
-    │       ├── audio_engine_class_diagram.png     # Motor de audio y backends
-    │       ├── spotify_api_classes_diagram.png    # Cliente y autenticación Spotify
-    │       ├── data_base_classes_diagram.png      # Controladores de persistencia
-    │       └── Data_&_Storage_layer_diagram.png   # Capa de almacenamiento y archivos
+    │   ├── FlowDiagram.png         # Global architecture flow diagram
+    │   ├── Diagrams.drawio         # Editable diagrams in Draw.io
+    │   └── Backend/                # Class diagrams by layer:
+    │       ├── audio_engine_class_diagram.png     # Audio engine and backends
+    │       ├── spotify_api_classes_diagram.png    # Spotify client and authentication
+    │       ├── data_base_classes_diagram.png      # Persistence controllers
+    │       └── Data_&_Storage_layer_diagram.png   # Storage and file layer
     └── DataBase/
-        └── Data_Base_Diagram.drawio.png           # Diagrama relacional de la base de datos (SQLite)
+        └── Data_Base_Diagram.drawio.png           # Relational database diagram (SQLite)
 ```
 
 ---
 
-## 🛠️ Stack Tecnológico
+## 🛠️ Tech Stack
 
-- **Lenguaje:** [Rust](https://www.rust-lang.org/)
-- **Interfaz en Terminal (TUI):** [`ratatui`](https://crates.io/crates/ratatui) y [`crossterm`](https://crates.io/crates/crossterm)
-- **Motor de Audio:** [`rodio`](https://crates.io/crates/rodio) (reproducción local) y [`librespot`](https://crates.io/crates/librespot) (reproducción de Spotify)
-- **Base de Datos & Metadatos:** [`sqlite`](https://crates.io/crates/sqlite), [`audiotags`](https://crates.io/crates/audiotags)
-- **Autenticación:** OAuth2 PKCE para Spotify Web API
+- **Language:** [Rust](https://www.rust-lang.org/)
+- **Terminal UI (TUI):** [`ratatui`](https://crates.io/crates/ratatui) and [`crossterm`](https://crates.io/crates/crossterm)
+- **Audio Engine:** [`rodio`](https://crates.io/crates/rodio) (local playback) and [`librespot`](https://crates.io/crates/librespot) (Spotify playback)
+- **Database & Metadata:** [`sqlite`](https://crates.io/crates/sqlite), [`audiotags`](https://crates.io/crates/audiotags)
+- **Authentication:** OAuth2 PKCE for the Spotify Web API
 
 ---
 
-## Cómo Ejecutar el Proyecto
+## How to Run the Project
 
-### 1. Prerrequisitos
+### 1. Prerequisites
 
-- Tener instalado [Rust y Cargo](https://rustup.rs/) (edición 2024 / última versión estable recomendada).
-- En sistemas Linux, asegurarte de contar con las librerías de desarrollo de audio y compilación (`ALSA` y `pkg-config`):
+- Install [Rust and Cargo](https://rustup.rs/) (2024 edition / latest stable version recommended).
+- On Linux systems, make sure you have the audio and build development libraries installed (`ALSA` and `pkg-config`):
 
 ```bash
-# En Debian / Ubuntu / derivados:
+# On Debian / Ubuntu / derivatives:
 sudo apt update
 sudo apt install build-essential pkg-config libasound2-dev libssl-dev
 
-# En Fedora:
+# On Fedora:
 sudo dnf install pkgconf-pkg-config alsa-lib-devel openssl-devel
 
-# En Arch Linux:
+# On Arch Linux:
 sudo pacman -S base-devel alsa-lib openssl
 ```
 
-### 2. Clonar el repositorio
+### 2. Clone the repository
 
 ```bash
-git clone https://github.com/TU_USUARIO/Spot-MP.git
+git clone https://github.com/YOUR_USERNAME/Spot-MP.git
 cd Spot-MP
 ```
 
-### 3. Compilar y Ejecutar
+### 3. Build and Run
 
-El código fuente de la aplicación se encuentra en el subdirectorio `spot-mp/`:
+The application source code is located in the `spot-mp/` subdirectory:
 
 ```bash
 cd spot-mp
 cargo run
 ```
 
-### 4. Ejecutar pruebas y verificación
+### 4. Run tests and checks
 
 ```bash
 cargo check --manifest-path spot-mp/Cargo.toml
@@ -116,16 +116,19 @@ cargo test --manifest-path spot-mp/Cargo.toml
 
 ---
 
-## Configuración de Spotify (Opcional)
+## Spotify Configuration (Optional)
 
-Para habilitar las funciones de Spotify, necesitarás crear una aplicación en el [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) para obtener tu `Client ID` y configurar la URL de redirección (`http://127.0.0.1:8888/callback`) correspondiente para el flujo de autenticación OAuth2 con PKCE (no se requiere `Client Secret`).
+To enable Spotify features, you will need to create an application in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard) to obtain your `Client ID` and configure the corresponding Redirect URI (`http://127.0.0.1:8888/callback`) for the OAuth2 PKCE authentication flow (no `Client Secret` is required).
 
 ---
-## 🤝 Contribuciones
-¡El proyecto es de código abierto y cualquier sugerencia o idea es bienvenida!
-Sin embargo, **actualmente el repositorio se encuentra en etapa de desarrollo**. 
-Por esta razón:
-- **No se aceptarán *Pull Requests* de código por el momento**, con el fin de consolidar la arquitectura base y las funcionalidades esenciales sin generar conflictos ni inconsistencias.
-- **¿Cómo puedes ayudar mientras tanto?** Si tienes ideas, sugerencias de diseño o mejoras, eres más que bienvenido a abrir un **[Issue](https://github.com/TU_USUARIO/Spot-MP/issues)** para debatirlas.
-- **Apertura de contribuciones:** Una vez publicada la primera versión funcional estable, se abrirán oficialmente las contribuciones a la comunidad junto con una guía detallada (`CONTRIBUTING.md`).
-¡Gracias por tu comprensión y por el interés en **Spot-MP**!
+
+## 🤝 Contributing
+
+This project is open source and any suggestions or ideas are welcome!
+However, **the repository is currently in an active development stage**.
+For this reason:
+- **Code Pull Requests will not be accepted at this time**, in order to consolidate the core architecture and essential features without introducing conflicts or inconsistencies.
+- **How can you help in the meantime?** If you have ideas, design suggestions, or improvements, feel free to open an **[Issue](https://github.com/YOUR_USERNAME/Spot-MP/issues)** to discuss them.
+- **Opening up contributions:** Once the first stable functional version is released, community contributions will officially open along with a detailed guide (`CONTRIBUTING.md`).
+
+Thank you for your understanding and your interest in **Spot-MP**!
