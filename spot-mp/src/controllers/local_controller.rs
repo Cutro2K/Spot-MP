@@ -8,22 +8,30 @@ use crate::{
         song::Song,
         spot_mp_errors::SpotMpError,
     },
-    services::data_storage::{db_controller::DBController, file_manager::FileManager},
+    services::data_storage::{
+        config_storage::ConfigStorage, cover_cache::CoverArtCache, db_controller::DBController,
+        song_scanner::SongScanner,
+    },
     state_store::app::action::{Action, LocalAction},
 };
 
 pub struct LocalController {
-    file_manager: FileManager,
+    config_storage: ConfigStorage,
+    song_scanner: SongScanner,
     db_controller: DBController,
 }
 
 impl LocalController {
     pub fn new() -> Result<Self, SpotMpError> {
-        info!("Initializing the File Manager...");
-        let f_manager = FileManager::new();
+        info!("Initializing configuration storage...");
+        let config_storage = ConfigStorage::new();
+
+        info!("Initializing cover cache and local song scanner...");
+        let cover_cache = CoverArtCache::new(config_storage.cache_folder());
+        let song_scanner = SongScanner::new(config_storage.music_folder(), cover_cache);
 
         info!("Initializing the Data Base controller...");
-        let db_file_path = f_manager.config_folder().join("spot-mp.db");
+        let db_file_path = config_storage.config_folder().join("spot-mp.db");
         let db_cont = DBController::new(
             db_file_path
                 .to_str()
@@ -31,7 +39,8 @@ impl LocalController {
         )?;
 
         Ok(Self {
-            file_manager: f_manager,
+            config_storage,
+            song_scanner,
             db_controller: db_cont,
         })
     }
@@ -48,7 +57,7 @@ impl LocalController {
     }
 
     pub fn fetch_local_songs(&self) -> Action {
-        match self.file_manager.get_local_songs() {
+        match self.song_scanner.get_local_songs() {
             Ok(songs) => Action::Local(LocalAction::FetchedSongs(songs)),
             Err(e) => Action::UnexpectedErrorHappened(format!(
                 "Error happened fetching local songs: {}",
@@ -59,10 +68,16 @@ impl LocalController {
 
     // --- Auxiliary Functions ---
     pub fn validate_file_existence(&self, file_name: &str) -> bool {
-        self.file_manager.check_file_existence(file_name)
+        self.song_scanner.check_file_existence(file_name)
     }
 
     // --- Modify Functions ---
+    pub fn set_music_folder(&mut self, new_folder: PathBuf) -> Result<(), SpotMpError> {
+        self.config_storage.set_music_folder(new_folder.clone())?;
+        self.song_scanner.set_music_folder(new_folder);
+        Ok(())
+    }
+
     pub fn create_playlist(&mut self, playlist_name: &str) -> Action {
         let playlist_id = match self.db_controller.create_playlist(playlist_name) {
             Ok(id) => id,
@@ -96,6 +111,13 @@ impl LocalController {
     }
 
     pub fn add_song_to_playlist(&mut self, playlist_id: i64, mut song: Song) -> Action {
+        if song.is_local() && !self.validate_file_existence(song.song_data()) {
+            return Action::UnexpectedErrorHappened(format!(
+                "The file for {} is no longer available on disk.",
+                song.song_name()
+            ));
+        }
+
         match self
             .db_controller
             .add_song_to_playlist(playlist_id, song.clone())
@@ -127,6 +149,10 @@ impl LocalController {
 
     // --- Getters ---
     pub fn get_spot_mp_folder(&self) -> PathBuf {
-        self.file_manager.config_folder()
+        self.config_storage.config_folder()
+    }
+
+    pub fn get_music_folder(&self) -> PathBuf {
+        self.song_scanner.song_folder()
     }
 }
