@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::sync::RwLock;
 use reqwest::{Client};
 
 use crate::{domain::spot_mp_errors::{SpotMpError, Status}, services::spotify_api::client::request_builder::SpotifyRequestBuilder};
@@ -37,11 +37,18 @@ impl SpotifyHttpClient {
     }
 
     // Request an access token safety
-    pub async fn require_token(&self) -> Result<String, SpotMpError> {
-        let guard = self.tokens.read().await;
+    pub fn require_token(&self) -> Result<String, SpotMpError> {
+        let guard = self.tokens.read().unwrap();
         guard.access_token.clone().ok_or_else(|| {
             SpotMpError::SpotifyErrorStatus(Status::Unauthorized(
                 "The access token is missing!".to_string(),
+            ))
+        })
+    }
+    pub fn require_refresh(&self) -> Result<String, SpotMpError> {
+        self.tokens.read().unwrap().refresh_token.clone().ok_or_else(|| {
+            SpotMpError::Error(String::from(
+                "Tried to renew token before authentication (refresh_token is none)",
             ))
         })
     }
@@ -55,5 +62,23 @@ impl SpotifyHttpClient {
     }
     pub fn delete(&self, url: &str) -> SpotifyRequestBuilder<'_> {
         SpotifyRequestBuilder::new(self, self.client.delete(url))
+    }
+
+    pub fn set_tokens(
+        &self,
+        access_token: Option<String>,
+        refresh_token: Option<String>,
+        expires_at: Option<std::time::Instant>,
+    ) {
+        let mut guard = self.tokens.write().unwrap();
+        guard.access_token = access_token;
+        guard.refresh_token = refresh_token;
+        guard.expires_at = expires_at;
+    }
+    pub fn access_token(&self) -> Option<String> {
+        self.tokens.read().unwrap().access_token.clone()
+    }
+    pub fn refresh_token(&self) -> Option<String> {
+        self.tokens.read().unwrap().refresh_token.clone()
     }
 }

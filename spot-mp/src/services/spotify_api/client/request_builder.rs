@@ -42,7 +42,7 @@ impl<'a> SpotifyRequestBuilder<'a> {
     /// Centralized excecution with error handler.
     async fn execute(mut self) -> Result<Response, SpotMpError> {
         if self.requires_auth {
-            let token = self.http.require_token().await?;
+            let token = self.http.require_token()?;
             self.builder = self.builder.bearer_auth(token);
         }
 
