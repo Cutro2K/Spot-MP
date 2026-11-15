@@ -1,4 +1,4 @@
-use crate::domain::song::Song;
+use crate::domain::{album::Album, song::Song};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LocalPlaylistData {
@@ -16,11 +16,16 @@ pub enum PlaylistOrigin {
     Spotify(SpotifyPlaylistData),
 }
 
+/*
+    This structure is used for messages of responses but I'll probably
+    change whit a DTO's programming paradim to don't overload the message 
+    pipe 
+*/
 #[derive(Clone, Debug)]
 pub enum SpotifySearchResponse {
     Song(Song),
     Playlist(Playlist),
-    Album(Playlist),
+    Album(Album),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
