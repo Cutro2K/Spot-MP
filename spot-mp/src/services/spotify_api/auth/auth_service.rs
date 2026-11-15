@@ -3,7 +3,7 @@ use std::{collections::HashMap};
 use crate::{
     domain::spot_mp_errors::SpotMpError, services::spotify_api::{
         auth::{ 
-            browser_opener::SystemBrowserOpener, callback_server::AuthCallbackServer, oauth_config::OAuthConfig, pkce::SpotifyAuth}, client::http_client::SpotifyHttpClient, models::SpotifyTokenResponse, traits::{BrowserOpener, SpotifyAuthenticator}
+            browser_opener::SystemBrowserOpener, callback_server::AuthCallbackServer, oauth_config::OAuthConfig, pkce::SpotifyAuth}, client::http_client::SpotifyHttpClient, models::SpotifyTokenResponse, traits::{AuthManager, BrowserOpener}
     }
 };
 
@@ -40,7 +40,7 @@ impl<B: BrowserOpener> AuthService<B> {
     }
 }
 
-impl<B: BrowserOpener> SpotifyAuthenticator for AuthService<B> {
+impl<B: BrowserOpener> AuthManager for AuthService<B> {
     async fn login(
         &mut self,
         client_id: &str
@@ -50,7 +50,7 @@ impl<B: BrowserOpener> SpotifyAuthenticator for AuthService<B> {
             "playlist-read-private playlist-read-collaborative ",
             "playlist-modify-private playlist-modify-public ",
             "user-modify-playback-state user-read-playback-state ",
-            "user-library-read user-read-currently-playing ",
+            "user-library-read user-library-modify user-read-currently-playing ",
             "user-read-email user-read-private"
         );
 
