@@ -33,6 +33,7 @@ pub struct Playlist {
     songs: Vec<Song>,
     is_modifiable: bool,
     playlist_name: String,
+    img_url: Option<String>,
     id_playlist: PlaylistOrigin,
 }
 
@@ -41,12 +42,14 @@ impl Playlist {
         songs: Vec<Song>,
         is_modifiable: bool,
         playlist_name: String,
+        img_url: Option<String>,
         id_playlist: PlaylistOrigin,
     ) -> Self {
         Self {
             songs,
             is_modifiable,
             playlist_name,
+            img_url,
             id_playlist,
         }
     }
@@ -72,6 +75,10 @@ impl Playlist {
             PlaylistOrigin::Local(playlist_data) => playlist_data.id_playlist.to_string(),
             PlaylistOrigin::Spotify(playlist_data) => playlist_data.id_playlist.clone(),
         }
+    }
+
+    pub fn get_img(&self) -> Option<&str> {
+        self.img_url.as_deref()
     }
 
     pub fn get_duration(&self) -> i64 {

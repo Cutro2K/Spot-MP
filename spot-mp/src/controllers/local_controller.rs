@@ -92,6 +92,7 @@ impl LocalController {
             Vec::new(),
             true,
             playlist_name.to_string(),
+            None,
             PlaylistOrigin::Local(LocalPlaylistData {
                 id_playlist: playlist_id,
             }),

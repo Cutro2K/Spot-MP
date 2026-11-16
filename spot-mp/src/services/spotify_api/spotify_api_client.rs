@@ -589,7 +589,7 @@ impl SpotifyApiClient {
         playlist_id: &str,
         song_id: &str,
     ) -> Result<(), SpotMpError> {
-        let url = format!("https://api.spotify.com/v1/playlists/{}/tracks", playlist_id);
+        let url = format!("https://api.spotify.com/v1/playlists/{}/items", playlist_id);
         let token = self.require_token()?;
 
         let track_uri = if song_id.starts_with("spotify:track:") {

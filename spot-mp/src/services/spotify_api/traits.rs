@@ -35,15 +35,15 @@ pub trait PlaylistManager {
         playlist_id: &str
     ) -> impl Future<Output = Result<(), SpotMpError>> + Send + Sync;
 
-    fn import_liked_playlist(
-        &self,
-        user_id: &str
-    ) -> impl Future<Output = Result<Vec<Playlist>, SpotMpError>> + Send + Sync;
-
     fn get_playlist_tracks(
         &self, 
         playlist_id: &str
     ) -> impl Future<Output = Result<Vec<Song>, SpotMpError>> + Send + Sync;
+
+    fn import_liked_playlist(
+        &self,
+        user_id: &str
+    ) -> impl Future<Output = Result<Vec<Playlist>, SpotMpError>> + Send + Sync;
 }
 
 pub trait AlbumManager {
