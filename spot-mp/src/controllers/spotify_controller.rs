@@ -43,28 +43,23 @@ impl SpotifyController {
     }
 
     pub fn tokens(&self) -> Option<WebApiData> {
-        let access_token = self.client.access_token()?.to_string();
-        let refresh_token = self.client.refresh_token()?.to_string();
+        let access_token = self.client.access_token()?;
+        let refresh_token = self.client.refresh_token()?;
         Some(WebApiData {
             access_token,
             refresh_token,
         })
     }
 
-    pub async fn login(&mut self, client_id: String) -> Result<String, SpotMpError> {
-        // Try to login with given client id...
+    pub async fn login(&mut self, client_id: String) -> Result<(), SpotMpError> {
         info!("Logging in to Spotify with client id: {}...", client_id);
-        let refresh_token = match self.client.login(&client_id).await {
-            Ok(token) => token,
-            Err(e) => {
-                error!("Spotify Error (Login): {}", e);
-                return Err(e);
-            }
-        };
-
+        if let Err(e) = self.client.login(&client_id).await {
+            error!("Spotify Error (Login): {}", e);
+            return Err(e);
+        }
         self.client_id = Some(client_id);
         self.logged_in = true;
-        Ok(refresh_token)
+        Ok(())
     }
 
     pub fn logout(&mut self) -> Action {
@@ -74,7 +69,7 @@ impl SpotifyController {
         Action::Spotify(SpotifyAction::LoggedOut)
     }
 
-    pub async fn renew_token(&mut self) -> Result<String, SpotMpError> {
+    pub async fn renew_token(&mut self) -> Result<(), SpotMpError> {
         let client_id = self.client_id.clone().ok_or_else(|| {
             SpotMpError::SpotifyErrorStatus(Status::Unauthorized(
                 "Cannot renew token: client_id is missing".to_string(),
@@ -88,11 +83,11 @@ impl SpotifyController {
             return Action::NoOp;
         }
         if self.client_id.is_none() {
-            error!("Tried to fetch playlist and albums when the user is logged out!");
+            error!("Tried to fetch playlists when the user is logged out!");
             return Action::Spotify(SpotifyAction::UserIsLoggedOut);
         }
 
-        let playlists = match self.client.import_liked_albums_and_playlist().await {
+        let playlists = match self.client.import_liked_playlist().await {
             Ok(playlists) => playlists,
             Err(e) => match e {
                 SpotMpError::SpotifyErrorStatus(Status::Unauthorized(_)) => {
@@ -103,13 +98,42 @@ impl SpotifyController {
                 _ => {
                     error!("Spotify Error (fetch_playlists): {}", e);
                     return Action::UnexpectedErrorHappened(
-                        "Failed to import liked albums and playlists!".to_string(),
+                        "Failed to import liked playlists!".to_string(),
                     );
                 }
             },
         };
 
         Action::Spotify(SpotifyAction::FetchedPlaylists(playlists))
+    }
+
+    pub async fn fetch_albums(&self) -> Action {
+        if !self.logged_in {
+            return Action::NoOp;
+        }
+        if self.client_id.is_none() {
+            error!("Tried to fetch albums when the user is logged out!");
+            return Action::Spotify(SpotifyAction::UserIsLoggedOut);
+        }
+
+        let albums = match self.client.import_liked_albums().await {
+            Ok(albums) => albums,
+            Err(e) => match e {
+                SpotMpError::SpotifyErrorStatus(Status::Unauthorized(_)) => {
+                    return Action::Spotify(SpotifyAction::ExpiredToken(
+                        FunctionToRepeat::FetchedAlbums,
+                    ));
+                }
+                _ => {
+                    error!("Spotify Error (fetch_albums): {}", e);
+                    return Action::UnexpectedErrorHappened(
+                        "Failed to import liked albums!".to_string(),
+                    );
+                }
+            },
+        };
+
+        Action::Spotify(SpotifyAction::FetchedAlbums(albums))
     }
 
     pub async fn search_query(&self, query: &str) -> Action {
@@ -259,6 +283,31 @@ impl SpotifyController {
                 _ => {
                     error!("Spotify Error (delete playlist): {}", e);
                     Action::UnexpectedErrorHappened("Failed to delete the playlist!".to_string())
+                }
+            },
+        }
+    }
+
+    pub async fn delete_album(&self, album_id: &str) -> Action {
+        if !self.logged_in {
+            return Action::NoOp;
+        }
+        if self.client_id.is_none() {
+            error!("Tried to delete an album when the user is logged out!");
+            return Action::Spotify(SpotifyAction::UserIsLoggedOut);
+        }
+
+        match self.client.unfollow_album(album_id).await {
+            Ok(_) => Action::Spotify(SpotifyAction::DeletedAlbum(album_id.to_string())),
+            Err(e) => match e {
+                SpotMpError::SpotifyErrorStatus(Status::Unauthorized(_)) => Action::Spotify(
+                    SpotifyAction::ExpiredToken(FunctionToRepeat::DeleteAlbum(
+                        album_id.to_string(),
+                    )),
+                ),
+                _ => {
+                    error!("Spotify Error (delete album): {}", e);
+                    Action::UnexpectedErrorHappened("Failed to delete the album!".to_string())
                 }
             },
         }

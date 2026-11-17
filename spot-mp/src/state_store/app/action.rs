@@ -1,4 +1,5 @@
 use crate::domain::{
+    album::Album,
     auth_models::LibrespotData,
     playback_flow::PlaybackFlow,
     playlist::{Playlist, SpotifySearchResponse},
@@ -40,11 +41,13 @@ pub enum SpotifyAction {
     LoggOut,
     RenewToken,
     FetchPlaylists,
+    FetchAlbums,
     SearchQuery(String),                         // String Query
     AddSongTo(String, Song),                     // PlaylistId, Song
     EraseSongFrom(String, Song),                 // PlaylistId, Song
     CreatePlaylist(String, bool, Option<Song>),  // PlaylistName, Public Boolean, Optional initial song
     DeletePlaylist(String),                      // PlaylistId (Unfollow)
+    DeleteAlbum(String),                         // AlbumId (Unfollow)
 
     // Response Actions | ControllerHub -> Dispatcher
     LoggedIn,
@@ -52,10 +55,12 @@ pub enum SpotifyAction {
     UserIsLoggedOut,
     ExpiredToken(FunctionToRepeat),
     FetchedPlaylists(Vec<Playlist>),
+    FetchedAlbums(Vec<Album>),
     AddedSongTo(Song, String),     // Playlist Id
     RemovedSongFrom(Song, String), // Playlist Id
     PlaylistCreatedWith(Playlist, Option<Song>),
     DeletedPlaylist(String),       // Playlist Id
+    DeletedAlbum(String),          // Album Id
     QueryResult(Vec<SpotifySearchResponse>),
 }
 
@@ -63,10 +68,12 @@ pub enum SpotifyAction {
 pub enum FunctionToRepeat {
     // Response Actions | ControllerHub -> Dispatcher
     FetchedPlaylists,
+    FetchedAlbums,
     RemoveSongTo(Song, String), // Playlist Id
     AddSongTo(Song, String),    // Playlist Id
     CreatePlaylistWith(String, bool, Option<Song>), // Playlist Name | Public | Optional Song to add
     DeletePlaylist(String),     // Playlist Id
+    DeleteAlbum(String),        // Album Id
     SearchQuery(String),        // Query
 }
 

@@ -133,6 +133,10 @@ impl ControllerHub {
                 let mut sp = self.spotify_controller.write().await;
                 sp.fetch_playlists().await
             }
+            SpotifyAction::FetchAlbums => {
+                let sp = self.spotify_controller.read().await;
+                sp.fetch_albums().await
+            }
             SpotifyAction::SearchQuery(query) => {
                 let sp = self.spotify_controller.read().await;
                 sp.search_query(&query).await
@@ -152,6 +156,10 @@ impl ControllerHub {
             SpotifyAction::DeletePlaylist(playlist_id) => {
                 let sp = self.spotify_controller.read().await;
                 sp.delete_playlist(&playlist_id).await
+            }
+            SpotifyAction::DeleteAlbum(album_id) => {
+                let sp = self.spotify_controller.read().await;
+                sp.delete_album(&album_id).await
             }
             _ => Action::NoOp,
         };
