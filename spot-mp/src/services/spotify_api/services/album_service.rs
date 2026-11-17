@@ -57,7 +57,7 @@ impl AlbumManager for AlbumService {
     ) -> Result<Vec<Album>, SpotMpError>
     {
         let mut result: Vec<Album> = Vec::new();
-        let mut next_url = Some("https://api.spotify.com/v1/me/albums?limit=50".to_string());
+        let mut next_url = Some("https://api.spotify.com/v1/me/albums?limit=10".to_string());
 
         while let Some(url) = next_url {
             let album_response = self.http.get(&url).send_json::<GetUserAlbumsRespose>().await?;
@@ -113,10 +113,11 @@ impl AlbumManager for AlbumService {
     {
         let url = "https://api.spotify.com/v1/me/library";
 
-        let uri = format!(
-            "spotify:album:{}",
-            album_id  
-        );
+        let uri = if album_id.starts_with("spotify:album:") {
+            album_id.to_string()
+        } else {
+            format!("spotify:album:{}", album_id)
+        };
         
         self.http
             .delete(url)

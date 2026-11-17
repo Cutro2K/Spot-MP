@@ -192,6 +192,7 @@ impl DBController {
                 songs,
                 true,
                 playlist_name,
+                None,
                 PlaylistOrigin::Local(LocalPlaylistData {
                     id_playlist: playlist_id,
                 }),

@@ -5,6 +5,7 @@ pub trait TrackCollection {
     fn name(&self) -> &str;
     fn songs(&self) -> &[Song];
     fn is_modifiable(&self) -> bool;
+    fn img_url(&self) -> Option<&str>;
     fn get_duration(&self) -> i64 {
         self.songs().iter().map(|s| s.duration()).sum()
     }
@@ -26,6 +27,10 @@ impl TrackCollection for Playlist {
     fn is_modifiable(&self) -> bool {
         self.is_modifiable()
     }
+
+    fn img_url(&self) -> Option<&str> {
+        self.get_img()
+    }
 }
 
 impl TrackCollection for Album {
@@ -43,6 +48,14 @@ impl TrackCollection for Album {
 
     fn is_modifiable(&self) -> bool {
         false
+    }
+
+    fn img_url(&self) -> Option<&str> {
+        if self.img_path().is_empty() {
+            None
+        } else {
+            Some(self.img_path())
+        }
     }
 }
 
@@ -78,6 +91,13 @@ impl TrackCollection for Collection {
         match self {
             Collection::Playlist(p) => p.is_modifiable(),
             Collection::Album(a) => a.is_modifiable(),
+        }
+    }
+
+    fn img_url(&self) -> Option<&str> {
+        match self {
+            Collection::Playlist(p) => p.img_url(),
+            Collection::Album(a) => a.img_url(),
         }
     }
 }
