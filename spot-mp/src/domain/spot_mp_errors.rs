@@ -36,6 +36,8 @@ pub enum SpotMpError {
     
     // Spotify API reqwest:
     SpotifyErrorStatus(Status),
+    // Web API session expired (terminal token refresh failure)
+    SessionExpired(String),
 
     /// --- Audio Backend ---
     // Not initialized backend error
@@ -78,6 +80,7 @@ impl fmt::Display for SpotMpError {
             SpotMpError::SpotifyErrorStatus(Status::Unauthorized(t)) => write!(f, "The authentication has expired or you need more credentials. Response: {}", t),
             SpotMpError::SpotifyErrorStatus(Status::TooManyRequest(t)) => write!(f, "API calls rate limit have been surpassed. Response: {}", t),
             SpotMpError::SpotifyErrorStatus(Status::Unknown(n, t)) => write!(f, "Unexpected Spotify API error (Code: {}). Response: {}", n, t),
+            SpotMpError::SessionExpired(reason) => write!(f, "Spotify Web API session expired: {}", reason),
             SpotMpError::RodioDecoderError(e) => write!(f, "Error in Decoding with rodio: {}", e),
             SpotMpError::RodioSeekError(e) => write!(f, "Error trying to seek the audio track: {}", e),
             SpotMpError::LibrespotError(e) => write!(f, "Unknown error in librespot backend: {}", e),
@@ -142,5 +145,24 @@ impl From<core::Error> for SpotMpError {
 impl From<serde_json::Error> for SpotMpError {
     fn from(error: serde_json::Error) -> Self {
         SpotMpError::SerdeJsonError(error)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::SpotMpError;
+
+    #[test]
+    fn session_expired_displays_human_readable_message_with_reason() {
+        let err = SpotMpError::SessionExpired("refresh token revoked".to_string());
+        let displayed = err.to_string();
+        assert!(
+            displayed.to_lowercase().contains("session expired"),
+            "expected 'session expired' in display message, got: {displayed}"
+        );
+        assert!(
+            displayed.contains("refresh token revoked"),
+            "expected reason in display message, got: {displayed}"
+        );
     }
 }

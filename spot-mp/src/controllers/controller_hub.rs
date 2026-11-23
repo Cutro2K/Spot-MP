@@ -118,7 +118,7 @@ impl ControllerHub {
                 act
             }
             SpotifyAction::RenewToken => {
-                let mut sp = self.spotify_controller.write().await;
+                let sp = self.spotify_controller.read().await;
                 match sp.renew_token().await {
                     Ok(_) => {
                         let mut session = self.auth_controller.get_session();

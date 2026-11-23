@@ -105,84 +105,150 @@ impl<B: BrowserOpener> AuthManager for AuthService<B> {
             .send_json::<SpotifyTokenResponse>()
             .await?;
 
-        // Calculating the expires_at variable for the http_client
-        let valid_secs = token_data.expires_in.saturating_sub(60).max(0) as u64;
-        let expires_at = std::time::Instant::now() + std::time::Duration::from_secs(valid_secs);
-
         // Validating refresh_token
         let refresh_token = token_data.refresh_token.ok_or_else(|| {
             SpotMpError::Error("Cannot retrieve the refresh token value after login!".to_string())
         })?;
        
-        self.http
-            .set_tokens(
-                Some(token_data.access_token),
-                Some(refresh_token),
-                Some(expires_at),
-            );
+        self.http.set_session(
+            Some(client_id.to_string()),
+            Some(token_data.access_token),
+            Some(refresh_token),
+        );
         Ok(())
     }
 
-    fn logout(&mut self){ 
-        self.http.set_tokens(
-            None, 
-            None, 
-            None
-        );
+    fn restore_session(
+        &mut self,
+        client_id: String,
+        access_token: String,
+        refresh_token: String,
+    ) {
+        self.http
+            .set_session(Some(client_id), Some(access_token), Some(refresh_token));
     }
 
-    async fn renew_token(
-        &mut self, 
-        client_id: &str
-    ) -> Result<(), SpotMpError>
-    {
-        // Getting the refresh token
-        let mut refresh_token = self.http.require_refresh()?;
+    fn logout(&mut self) {
+        self.http.set_session(None, None, None);
+    }
+
+    fn clear_tokens(&self) {
+        self.http.clear_web_api_tokens();
+    }
+
+    async fn renew_token(&self) -> Result<(), SpotMpError> {
+        let (epoch_before, client_id, mut refresh_token) =
+            self.http.snapshot_refresh_credentials()?;
 
         let mut params = HashMap::new();
         params.insert("grant_type", "refresh_token");
-        params.insert("refresh_token", &refresh_token);
-        params.insert("client_id", client_id);
-        
-        let token_data = self.http
+        params.insert("refresh_token", refresh_token.as_str());
+        params.insert("client_id", client_id.as_str());
+
+        let token_data = self
+            .http
             .post(SPOTIFY_TOKEN_URL)
             .without_auth()
-            .form(&params).send_json::<SpotifyTokenResponse>()
+            .form(&params)
+            .send_json::<SpotifyTokenResponse>()
             .await?;
 
-        let valid_secs = token_data.expires_in.saturating_sub(60).max(0) as u64;
-        let expires_at = std::time::Instant::now() + std::time::Duration::from_secs(valid_secs);
-        
         if let Some(new_refresh_token) = token_data.refresh_token {
             refresh_token = new_refresh_token;
         }
 
-        self.http.set_tokens(Some(token_data.access_token), Some(refresh_token), Some(expires_at));
+        self.http
+            .update_tokens_if_epoch(epoch_before, token_data.access_token, refresh_token);
         Ok(())
     }
 
-    fn set_tokens(
-        &mut self, 
-        access_token: Option<String>, 
-        refresh_token: Option<String>
-    )
-    {
-        self.http.set_tokens(access_token, refresh_token, None);
-    }
-
     fn access_token(&self) -> Option<String> {
-        if let Ok(token) = self.http.require_token() {
-            Some(token)
-        } else {
-            None
-        }
+        self.http.access_token()
     }
 
     fn refresh_token(&self) -> Option<String> {
-        if let Ok(token) = self.http.require_refresh() {
-            Some(token)
-        } else {
-            None
+        self.http.refresh_token()
+    }
+
+    fn client_id(&self) -> Option<String> {
+        self.http.client_id()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{Arc, RwLock};
+
+    use super::*;
+    use crate::services::spotify_api::client::http_client::TokenState;
+
+    struct NoOpBrowser;
+    impl BrowserOpener for NoOpBrowser {
+        fn open(&self, _url: &str) -> Result<(), SpotMpError> {
+            Ok(())
         }
+    }
+
+    fn new_auth_service() -> (AuthService<NoOpBrowser>, SpotifyHttpClient) {
+        let http = SpotifyHttpClient::new(Arc::new(RwLock::new(TokenState::default())));
+        let auth = AuthService::with_browser(http.clone(), OAuthConfig::default(), NoOpBrowser);
+        (auth, http)
+    }
+
+    #[test]
+    fn restore_clear_tokens_and_logout_manage_session_and_client_id() {
+        let (mut auth, http) = new_auth_service();
+
+        auth.restore_session(
+            "client-abc".to_string(),
+            "access-1".to_string(),
+            "refresh-1".to_string(),
+        );
+        assert_eq!(auth.client_id().as_deref(), Some("client-abc"));
+        assert_eq!(auth.access_token().as_deref(), Some("access-1"));
+        assert_eq!(auth.refresh_token().as_deref(), Some("refresh-1"));
+        let epoch_after_restore = http.session_epoch();
+
+        // Web-API-only clear via shared &self preserves client_id and increments epoch.
+        let shared_auth: &AuthService<NoOpBrowser> = &auth;
+        shared_auth.clear_tokens();
+        assert_eq!(auth.access_token(), None);
+        assert_eq!(auth.refresh_token(), None);
+        assert_eq!(auth.client_id().as_deref(), Some("client-abc"));
+        assert!(http.session_epoch() > epoch_after_restore);
+
+        // Full logout clears client_id and tokens and increments epoch.
+        let epoch_after_clear = http.session_epoch();
+        auth.logout();
+        assert_eq!(auth.client_id(), None);
+        assert_eq!(auth.access_token(), None);
+        assert_eq!(auth.refresh_token(), None);
+        assert!(http.session_epoch() > epoch_after_clear);
+    }
+
+    #[tokio::test]
+    async fn renew_token_uses_shared_self_and_errors_when_credentials_missing() {
+        let (mut auth, _http) = new_auth_service();
+
+        // Missing client_id and refresh_token -> SessionExpired via &self
+        let shared_auth: &AuthService<NoOpBrowser> = &auth;
+        let err = shared_auth.renew_token().await.unwrap_err();
+        assert!(
+            matches!(err, SpotMpError::SessionExpired(_)),
+            "expected SessionExpired when client_id missing, got: {err:?}"
+        );
+
+        // With client_id present but tokens cleared -> SessionExpired via &self
+        auth.restore_session(
+            "client-abc".to_string(),
+            "access-1".to_string(),
+            "refresh-1".to_string(),
+        );
+        auth.clear_tokens();
+        let err = auth.renew_token().await.unwrap_err();
+        assert!(
+            matches!(err, SpotMpError::SessionExpired(_)),
+            "expected SessionExpired when refresh_token missing, got: {err:?}"
+        );
     }
 }

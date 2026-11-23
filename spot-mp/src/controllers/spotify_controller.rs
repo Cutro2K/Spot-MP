@@ -32,9 +32,9 @@ impl SpotifyController {
     }
 
     pub fn restore_session(&mut self, client_id: String, web_api: WebApiData) {
-        self.client_id = Some(client_id);
+        self.client_id = Some(client_id.clone());
         self.client
-            .set_tokens(Some(web_api.access_token), Some(web_api.refresh_token));
+            .restore_session(client_id, web_api.access_token, web_api.refresh_token);
         self.logged_in = true;
     }
 
@@ -69,13 +69,8 @@ impl SpotifyController {
         Action::Spotify(SpotifyAction::LoggedOut)
     }
 
-    pub async fn renew_token(&mut self) -> Result<(), SpotMpError> {
-        let client_id = self.client_id.clone().ok_or_else(|| {
-            SpotMpError::SpotifyErrorStatus(Status::Unauthorized(
-                "Cannot renew token: client_id is missing".to_string(),
-            ))
-        })?;
-        self.client.renew_token(&client_id).await
+    pub async fn renew_token(&self) -> Result<(), SpotMpError> {
+        self.client.renew_token().await
     }
 
     pub async fn fetch_playlists(&mut self) -> Action {

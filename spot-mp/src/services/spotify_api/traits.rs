@@ -71,31 +71,37 @@ pub trait AuthManager {
         client_id: &str
     ) -> impl Future<Output = Result<(), SpotMpError>> + Send + Sync;
 
+    fn restore_session(
+        &mut self,
+        client_id: String,
+        access_token: String,
+        refresh_token: String,
+    );
+
     fn logout(
         &mut self
     );
 
+    fn clear_tokens(
+        &self
+    );
+
     fn renew_token(
-        &mut self, 
-        client_id: &str
+        &self
     ) -> impl Future<Output = Result<(), SpotMpError>> + Send + Sync; 
 
-    fn set_tokens(
-        &mut self, 
-        access_token: Option<String>, 
-        refresh_token: Option<String>
-    );
     fn access_token(&self) -> Option<String>;
     fn refresh_token(&self) -> Option<String>;
+    fn client_id(&self) -> Option<String>;
 }
 
 pub trait UserManager {
     fn fetch_current_user_id(
-        &mut self
+        &self
     ) -> impl Future<Output = Result<String, SpotMpError>> + Send + Sync;
 
     fn clear_user_id(
-        &mut self
+        &self
     );
 }
 pub trait BrowserOpener: Send + Sync {
