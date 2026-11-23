@@ -24,8 +24,14 @@ pub struct LocalController {
 impl LocalController {
     pub fn new() -> Result<Self, SpotMpError> {
         info!("Initializing configuration storage...");
-        let config_storage = ConfigStorage::new();
+        Self::from_config_storage(ConfigStorage::new())
+    }
 
+    pub fn with_config_folder(config_folder: PathBuf) -> Result<Self, SpotMpError> {
+        Self::from_config_storage(ConfigStorage::with_config_folder(config_folder))
+    }
+
+    fn from_config_storage(config_storage: ConfigStorage) -> Result<Self, SpotMpError> {
         info!("Initializing cover cache and local song scanner...");
         let cover_cache = CoverArtCache::new(config_storage.cache_folder());
         let song_scanner = SongScanner::new(config_storage.music_folder(), cover_cache);

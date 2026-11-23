@@ -1,7 +1,10 @@
 use log::{error, info};
 use std::path::PathBuf;
 
-use crate::{domain::auth_models::SessionData, services::data_storage::auth_storage::AuthStorage};
+use crate::{
+    domain::auth_models::{SessionData, WebApiData},
+    services::data_storage::auth_storage::AuthStorage,
+};
 
 #[allow(dead_code)]
 pub struct AuthController {
@@ -55,5 +58,13 @@ impl AuthController {
 
     pub fn get_session(&self) -> SessionData {
         self.session_data.clone()
+    }
+
+    pub fn sync_web_api(&mut self, web_api: Option<WebApiData>) {
+        if self.session_data.web_api != web_api {
+            let mut updated = self.session_data.clone();
+            updated.web_api = web_api;
+            self.save_session(updated);
+        }
     }
 }

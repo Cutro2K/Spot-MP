@@ -1,19 +1,19 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct SessionData {
     pub client_id: Option<String>,
     pub web_api: Option<WebApiData>,
     pub librespot: Option<LibrespotData>,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct WebApiData {
     pub access_token: String,
     pub refresh_token: String,
 }
 
-#[derive(Deserialize, Serialize, Default, Debug, Clone)]
+#[derive(Deserialize, Serialize, Default, Debug, Clone, PartialEq, Eq)]
 pub struct LibrespotData {
     pub device_id: String,
     pub credentials: String,

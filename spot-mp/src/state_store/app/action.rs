@@ -39,7 +39,6 @@ pub enum SpotifyAction {
     // Task Actions | Dispatcher -> ControllerHub
     LoggIn(String), // Spotify ClientId
     LoggOut,
-    RenewToken,
     FetchPlaylists,
     FetchAlbums,
     SearchQuery(String),                         // String Query
@@ -53,7 +52,7 @@ pub enum SpotifyAction {
     LoggedIn,
     LoggedOut,
     UserIsLoggedOut,
-    ExpiredToken(FunctionToRepeat),
+    SessionExpired,
     FetchedPlaylists(Vec<Playlist>),
     FetchedAlbums(Vec<Album>),
     AddedSongTo(Song, String),     // Playlist Id
@@ -62,19 +61,6 @@ pub enum SpotifyAction {
     DeletedPlaylist(String),       // Playlist Id
     DeletedAlbum(String),          // Album Id
     QueryResult(Vec<SpotifySearchResponse>),
-}
-
-#[derive(Debug, Clone)]
-pub enum FunctionToRepeat {
-    // Response Actions | ControllerHub -> Dispatcher
-    FetchedPlaylists,
-    FetchedAlbums,
-    RemoveSongTo(Song, String), // Playlist Id
-    AddSongTo(Song, String),    // Playlist Id
-    CreatePlaylistWith(String, bool, Option<Song>), // Playlist Name | Public | Optional Song to add
-    DeletePlaylist(String),     // Playlist Id
-    DeleteAlbum(String),        // Album Id
-    SearchQuery(String),        // Query
 }
 
 #[derive(Debug, Clone)]

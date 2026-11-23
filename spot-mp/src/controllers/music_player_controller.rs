@@ -44,9 +44,16 @@ impl MusicPlayerController {
         let audio_engine = AudioBackendManager::new(m_reciever, e_sender);
         audio_engine.start_engine();
 
+        Self::with_channels(m_sender, e_reciever)
+    }
+
+    pub fn with_channels(
+        sender: mpsc::UnboundedSender<Messages>,
+        reciever: mpsc::UnboundedReceiver<Event>,
+    ) -> Self {
         Self {
-            reciever: e_reciever,
-            sender: m_sender,
+            reciever,
+            sender,
             now_playing: None,
             user_queue: VecDeque::new(),
             playlist_queue: VecDeque::new(),
