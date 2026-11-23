@@ -7,14 +7,8 @@ use crate::controllers::auth_controller::AuthController;
 use crate::controllers::local_controller::LocalController;
 use crate::controllers::music_player_controller::MusicPlayerController;
 use crate::controllers::spotify_controller::SpotifyController;
-use crate::services::spotify_api::auth::auth_service::AuthService;
-use crate::services::spotify_api::services::{
-    album_service::AlbumService, playlist_service::PlaylistService, search_service::SearchService,
-    user_service::UserService,
-};
-use crate::services::spotify_api::traits::{
-    AlbumManager, AuthManager, PlaylistManager, SearchManager, UserManager,
-};
+use crate::services::spotify_api::spotify_api_client::SpotifyApiClient;
+use crate::services::spotify_api::traits::SpotifyClient;
 use crate::state_store::app::action::{Action, LocalAction, MusicPlayerAction, SpotifyAction};
 
 // ControllerHub communicates with dispatcher to handle backend calls and produce actions with changes
@@ -22,17 +16,11 @@ use crate::state_store::app::action::{Action, LocalAction, MusicPlayerAction, Sp
 // whether the function has to mutate the internal values of the attributes.
 
 #[allow(dead_code)]
-pub struct ControllerHub<
-    A: AuthManager = AuthService,
-    U: UserManager = UserService,
-    P: PlaylistManager = PlaylistService,
-    Al: AlbumManager = AlbumService,
-    S: SearchManager = SearchService,
-> {
+pub struct ControllerHub<C: SpotifyClient = SpotifyApiClient> {
     reciever: UnboundedReceiver<Action>, // Comes from the dispatcher
     sender: UnboundedSender<Action>,     // Goes to the dispatcher
     local_controller: LocalController,
-    spotify_controller: Arc<RwLock<SpotifyController<A, U, P, Al, S>>>,
+    spotify_controller: Arc<RwLock<SpotifyController<C>>>,
     music_player_controller: MusicPlayerController,
     auth_controller: AuthController,
 }
@@ -73,19 +61,12 @@ impl ControllerHub {
     }
 }
 
-impl<A, U, P, Al, S> ControllerHub<A, U, P, Al, S>
-where
-    A: AuthManager,
-    U: UserManager,
-    P: PlaylistManager,
-    Al: AlbumManager,
-    S: SearchManager,
-{
+impl<C: SpotifyClient> ControllerHub<C> {
     pub fn with_controllers(
         dispatcher_reciever: UnboundedReceiver<Action>,
         dispatcher_sender: UnboundedSender<Action>,
         local_controller: LocalController,
-        spotify_controller: SpotifyController<A, U, P, Al, S>,
+        spotify_controller: SpotifyController<C>,
         music_player_controller: MusicPlayerController,
         auth_controller: AuthController,
     ) -> Self {
@@ -342,8 +323,11 @@ mod tests {
         }
     }
 
+    type StubSpotifyApiClient =
+        SpotifyApiClient<StubAuth, StubUser, StubPlaylist, StubAlbum, StubSearch>;
+
     struct TestHubHarness {
-        hub: ControllerHub<StubAuth, StubUser, StubPlaylist, StubAlbum, StubSearch>,
+        hub: ControllerHub<StubSpotifyApiClient>,
         dispatched_rx: mpsc::UnboundedReceiver<Action>,
         audio_msg_rx: mpsc::UnboundedReceiver<Messages>,
         _audio_evt_tx: mpsc::UnboundedSender<Event>,

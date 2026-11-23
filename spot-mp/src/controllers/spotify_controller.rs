@@ -4,28 +4,14 @@ use log::{error, info};
 
 use crate::{
     domain::{auth_models::WebApiData, song::Song, spot_mp_errors::SpotMpError},
-    services::spotify_api::{
-        auth::auth_service::AuthService,
-        services::{
-            album_service::AlbumService, playlist_service::PlaylistService,
-            search_service::SearchService, user_service::UserService,
-        },
-        spotify_api_client::SpotifyApiClient,
-        traits::{AlbumManager, AuthManager, PlaylistManager, SearchManager, UserManager},
-    },
+    services::spotify_api::{spotify_api_client::SpotifyApiClient, traits::SpotifyClient},
     state_store::app::action::{Action, SpotifyAction},
 };
 
-pub struct SpotifyController<
-    A: AuthManager = AuthService,
-    U: UserManager = UserService,
-    P: PlaylistManager = PlaylistService,
-    Al: AlbumManager = AlbumService,
-    S: SearchManager = SearchService,
-> {
+pub struct SpotifyController<C: SpotifyClient = SpotifyApiClient> {
     client_id: Option<String>,
     logged_in: AtomicBool,
-    client: SpotifyApiClient<A, U, P, Al, S>,
+    client: C,
 }
 
 impl Default for SpotifyController {
@@ -40,15 +26,8 @@ impl SpotifyController {
     }
 }
 
-impl<A, U, P, Al, S> SpotifyController<A, U, P, Al, S>
-where
-    A: AuthManager,
-    U: UserManager,
-    P: PlaylistManager,
-    Al: AlbumManager,
-    S: SearchManager,
-{
-    pub fn with_client(client: SpotifyApiClient<A, U, P, Al, S>) -> Self {
+impl<C: SpotifyClient> SpotifyController<C> {
+    pub fn with_client(client: C) -> Self {
         Self {
             client_id: None,
             logged_in: AtomicBool::new(false),
@@ -314,7 +293,7 @@ mod tests {
             },
         );
 
-        let shared: &SpotifyController<_, _, _, _, _> = &controller;
+        let shared: &SpotifyController<_> = &controller;
         let action = shared.fetch_playlists().await;
 
         assert!(
@@ -368,7 +347,7 @@ mod tests {
             },
         );
 
-        let shared: &SpotifyController<_, _, _, _, _> = &controller;
+        let shared: &SpotifyController<_> = &controller;
 
         // &self fetch_playlists transparently refreshes and succeeds
         let fetched = shared.fetch_playlists().await;

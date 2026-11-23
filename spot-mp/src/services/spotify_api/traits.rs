@@ -107,3 +107,63 @@ pub trait UserManager {
 pub trait BrowserOpener: Send + Sync {
     fn open(&self, url: &str) -> Result<(), SpotMpError>;
 }
+
+/// High-level facade boundary consumed by controllers, decoupling them from
+/// the individual Spotify sub-service traits.
+pub trait SpotifyClient: Send + Sync {
+    fn login(&mut self, client_id: &str) -> impl Future<Output = Result<(), SpotMpError>> + Send;
+
+    fn logout(&self);
+
+    fn restore_session(
+        &mut self,
+        client_id: String,
+        access_token: String,
+        refresh_token: String,
+    );
+
+    fn client_id(&self) -> Option<String>;
+    fn access_token(&self) -> Option<String>;
+    fn refresh_token(&self) -> Option<String>;
+
+    fn create_playlist(
+        &self,
+        playlist_name: &str,
+        public: bool,
+        song_to_add: Option<&Song>,
+    ) -> impl Future<Output = Result<Playlist, SpotMpError>> + Send;
+
+    fn add_song_to_playlist(
+        &self,
+        playlist_id: &str,
+        song_id: &str,
+    ) -> impl Future<Output = Result<(), SpotMpError>> + Send;
+
+    fn remove_song_from_playlist(
+        &self,
+        playlist_id: &str,
+        song_id: &str,
+    ) -> impl Future<Output = Result<(), SpotMpError>> + Send;
+
+    fn unfollow_playlist(
+        &self,
+        playlist_id: &str,
+    ) -> impl Future<Output = Result<(), SpotMpError>> + Send;
+
+    fn import_liked_playlist(
+        &self,
+    ) -> impl Future<Output = Result<Vec<Playlist>, SpotMpError>> + Send;
+
+    fn import_liked_albums(&self)
+        -> impl Future<Output = Result<Vec<Album>, SpotMpError>> + Send;
+
+    fn unfollow_album(
+        &self,
+        album_id: &str,
+    ) -> impl Future<Output = Result<(), SpotMpError>> + Send;
+
+    fn search_query(
+        &self,
+        query: &str,
+    ) -> impl Future<Output = Result<Vec<SpotifySearchResponse>, SpotMpError>> + Send;
+}

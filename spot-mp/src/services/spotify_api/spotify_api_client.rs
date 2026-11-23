@@ -16,7 +16,9 @@ use crate::{
             album_service::AlbumService, playlist_service::PlaylistService,
             search_service::SearchService, user_service::UserService,
         },
-        traits::{AlbumManager, AuthManager, PlaylistManager, SearchManager, UserManager},
+        traits::{
+            AlbumManager, AuthManager, PlaylistManager, SearchManager, SpotifyClient, UserManager,
+        },
     },
 };
 
@@ -275,6 +277,102 @@ where
     ) -> Result<Vec<SpotifySearchResponse>, SpotMpError> {
         self.execute_with_refresh(|| self.search.search_query(query))
             .await
+    }
+}
+
+impl<A, U, P, Al, S> SpotifyClient for SpotifyApiClient<A, U, P, Al, S>
+where
+    A: AuthManager + Send + Sync,
+    U: UserManager + Send + Sync,
+    P: PlaylistManager + Send + Sync,
+    Al: AlbumManager + Send + Sync,
+    S: SearchManager + Send + Sync,
+{
+    fn login(&mut self, client_id: &str) -> impl Future<Output = Result<(), SpotMpError>> + Send {
+        SpotifyApiClient::login(self, client_id)
+    }
+
+    fn logout(&self) {
+        SpotifyApiClient::logout(self);
+    }
+
+    fn restore_session(
+        &mut self,
+        client_id: String,
+        access_token: String,
+        refresh_token: String,
+    ) {
+        SpotifyApiClient::restore_session(self, client_id, access_token, refresh_token);
+    }
+
+    fn client_id(&self) -> Option<String> {
+        SpotifyApiClient::client_id(self)
+    }
+
+    fn access_token(&self) -> Option<String> {
+        SpotifyApiClient::access_token(self)
+    }
+
+    fn refresh_token(&self) -> Option<String> {
+        SpotifyApiClient::refresh_token(self)
+    }
+
+    fn create_playlist(
+        &self,
+        playlist_name: &str,
+        public: bool,
+        song_to_add: Option<&Song>,
+    ) -> impl Future<Output = Result<Playlist, SpotMpError>> + Send {
+        SpotifyApiClient::create_playlist(self, playlist_name, public, song_to_add)
+    }
+
+    fn add_song_to_playlist(
+        &self,
+        playlist_id: &str,
+        song_id: &str,
+    ) -> impl Future<Output = Result<(), SpotMpError>> + Send {
+        SpotifyApiClient::add_song_to_playlist(self, playlist_id, song_id)
+    }
+
+    fn remove_song_from_playlist(
+        &self,
+        playlist_id: &str,
+        song_id: &str,
+    ) -> impl Future<Output = Result<(), SpotMpError>> + Send {
+        SpotifyApiClient::remove_song_from_playlist(self, playlist_id, song_id)
+    }
+
+    fn unfollow_playlist(
+        &self,
+        playlist_id: &str,
+    ) -> impl Future<Output = Result<(), SpotMpError>> + Send {
+        SpotifyApiClient::unfollow_playlist(self, playlist_id)
+    }
+
+    fn import_liked_playlist(
+        &self,
+    ) -> impl Future<Output = Result<Vec<Playlist>, SpotMpError>> + Send {
+        SpotifyApiClient::import_liked_playlist(self)
+    }
+
+    fn import_liked_albums(
+        &self,
+    ) -> impl Future<Output = Result<Vec<Album>, SpotMpError>> + Send {
+        SpotifyApiClient::import_liked_albums(self)
+    }
+
+    fn unfollow_album(
+        &self,
+        album_id: &str,
+    ) -> impl Future<Output = Result<(), SpotMpError>> + Send {
+        SpotifyApiClient::unfollow_album(self, album_id)
+    }
+
+    fn search_query(
+        &self,
+        query: &str,
+    ) -> impl Future<Output = Result<Vec<SpotifySearchResponse>, SpotMpError>> + Send {
+        SpotifyApiClient::search_query(self, query)
     }
 }
 
