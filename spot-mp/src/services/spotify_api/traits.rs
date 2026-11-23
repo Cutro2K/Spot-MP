@@ -12,11 +12,10 @@ pub trait SearchManager {
 
 pub trait PlaylistManager {
     fn create_playlist(
-        &self, 
-        playlist_name: &str, 
-        public: bool, 
-        song_to_add: Option<&Song>
-    ) -> impl Future<Output = Result<Playlist, SpotMpError>> + Send + Sync;  
+        &self,
+        playlist_name: &str,
+        public: bool,
+    ) -> impl Future<Output = Result<Playlist, SpotMpError>> + Send + Sync;
 
     fn add_song_to_playlist(
         &self, 

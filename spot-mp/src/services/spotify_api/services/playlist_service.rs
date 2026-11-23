@@ -18,12 +18,10 @@ impl PlaylistService {
 
 impl PlaylistManager for PlaylistService {
     async fn create_playlist(
-        &self, 
-        playlist_name: &str, 
-        public: bool, 
-        song_to_add: Option<&Song>
-    ) -> Result<Playlist, SpotMpError>
-    {
+        &self,
+        playlist_name: &str,
+        public: bool,
+    ) -> Result<Playlist, SpotMpError> {
         let url = "https://api.spotify.com/v1/me/playlists";
 
         let body = json!({
@@ -31,25 +29,22 @@ impl PlaylistManager for PlaylistService {
             "public": public,
         });
 
-        let playlist_data = self.http.post(url).json(&body).send_json::<PlaylistItem>().await?;
+        let playlist_data = self
+            .http
+            .post(url)
+            .json(&body)
+            .send_json::<PlaylistItem>()
+            .await?;
 
-        let mut new_playlist = Playlist::new(
-            Vec::new(), 
-            true, 
-            playlist_data.name, 
+        Ok(Playlist::new(
+            Vec::new(),
+            true,
+            playlist_data.name,
             None,
-           PlaylistOrigin::Spotify(
-                SpotifyPlaylistData {
-                    id_playlist: playlist_data.id.clone(),
-                }
-            ),
-        );
-        if let Some(song) = song_to_add {    
-            Self::add_song_to_playlist(self, &playlist_data.id, song.song_data()).await?;
-            new_playlist.add_song(song.to_owned());
-        }
-
-        Ok(new_playlist)
+            PlaylistOrigin::Spotify(SpotifyPlaylistData {
+                id_playlist: playlist_data.id,
+            }),
+        ))
     }
 
     async fn add_song_to_playlist(

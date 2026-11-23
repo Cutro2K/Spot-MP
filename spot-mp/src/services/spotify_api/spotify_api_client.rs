@@ -182,11 +182,18 @@ where
         public: bool,
         song_to_add: Option<&Song>,
     ) -> Result<Playlist, SpotMpError> {
-        self.execute_with_refresh(|| {
-            self.playlist
-                .create_playlist(playlist_name, public, song_to_add)
-        })
-        .await
+        let mut playlist = self
+            .execute_with_refresh(|| self.playlist.create_playlist(playlist_name, public))
+            .await?;
+
+        if let Some(song) = song_to_add {
+            let playlist_id = playlist.id_playlist();
+            self.add_song_to_playlist(&playlist_id, song.song_data())
+                .await?;
+            playlist.add_song(song.to_owned());
+        }
+
+        Ok(playlist)
     }
 
     pub async fn add_song_to_playlist(
@@ -461,11 +468,15 @@ mod tests {
 
     impl TokenGate {
         fn open() -> Self {
+            Self::open_with_counter(Arc::new(AtomicUsize::new(0)))
+        }
+
+        fn open_with_counter(calls: Arc<AtomicUsize>) -> Self {
             Self {
                 auth: None,
                 valid_token: None,
                 first_call_barrier: None,
-                calls: Arc::new(AtomicUsize::new(0)),
+                calls,
             }
         }
 
@@ -503,14 +514,22 @@ mod tests {
 
     struct MockPlaylist {
         last_user_id: RwLock<Option<String>>,
-        gate: TokenGate,
+        import_gate: TokenGate,
+        create_gate: TokenGate,
+        add_song_gate: TokenGate,
+        created_playlist_id: String,
+        added_songs: Arc<Mutex<Vec<(String, String)>>>,
     }
 
     impl MockPlaylist {
         fn new() -> Self {
             Self {
                 last_user_id: RwLock::new(None),
-                gate: TokenGate::open(),
+                import_gate: TokenGate::open(),
+                create_gate: TokenGate::open(),
+                add_song_gate: TokenGate::open(),
+                created_playlist_id: "playlist-default".to_string(),
+                added_songs: Arc::new(Mutex::new(Vec::new())),
             }
         }
 
@@ -520,13 +539,28 @@ mod tests {
             first_call_barrier: Option<Arc<Barrier>>,
         ) -> Self {
             Self {
-                last_user_id: RwLock::new(None),
-                gate: TokenGate::requiring(
+                import_gate: TokenGate::requiring(
                     auth,
                     valid_token,
                     first_call_barrier,
                     Arc::new(AtomicUsize::new(0)),
                 ),
+                ..Self::new()
+            }
+        }
+
+        fn for_create_playlist(
+            created_playlist_id: &str,
+            create_gate: TokenGate,
+            add_song_gate: TokenGate,
+            added_songs: Arc<Mutex<Vec<(String, String)>>>,
+        ) -> Self {
+            Self {
+                create_gate,
+                add_song_gate,
+                created_playlist_id: created_playlist_id.to_string(),
+                added_songs,
+                ..Self::new()
             }
         }
     }
@@ -534,17 +568,32 @@ mod tests {
     impl PlaylistManager for MockPlaylist {
         async fn create_playlist(
             &self,
-            _playlist_name: &str,
+            playlist_name: &str,
             _public: bool,
-            _song_to_add: Option<&Song>,
         ) -> Result<Playlist, SpotMpError> {
-            unreachable!()
+            self.create_gate.check().await?;
+            Ok(Playlist::new(
+                Vec::new(),
+                true,
+                playlist_name.to_string(),
+                None,
+                crate::domain::playlist::PlaylistOrigin::Spotify(
+                    crate::domain::playlist::SpotifyPlaylistData {
+                        id_playlist: self.created_playlist_id.clone(),
+                    },
+                ),
+            ))
         }
         async fn add_song_to_playlist(
             &self,
-            _playlist_id: &str,
-            _song_id: &str,
+            playlist_id: &str,
+            song_id: &str,
         ) -> Result<(), SpotMpError> {
+            self.add_song_gate.check().await?;
+            self.added_songs
+                .lock()
+                .unwrap()
+                .push((playlist_id.to_string(), song_id.to_string()));
             Ok(())
         }
         async fn remove_song_from_playlist(
@@ -561,7 +610,7 @@ mod tests {
             Ok(vec![])
         }
         async fn import_liked_playlist(&self, user_id: &str) -> Result<Vec<Playlist>, SpotMpError> {
-            self.gate.check().await?;
+            self.import_gate.check().await?;
             *self.last_user_id.write().unwrap() = Some(user_id.to_string());
             Ok(vec![])
         }
@@ -1145,5 +1194,150 @@ mod tests {
         assert_eq!(client.client_id().as_deref(), Some("client-new"));
         assert_eq!(client.access_token().as_deref(), Some("new-access"));
         assert_eq!(client.refresh_token().as_deref(), Some("new-refresh"));
+    }
+
+    fn sample_spotify_song(spotify_id: &str) -> Song {
+        Song::new(
+            None,
+            "Sample Track".to_string(),
+            210,
+            String::new(),
+            crate::domain::song::SongOrigin::Spotify(crate::domain::song::SpotifySongData {
+                spotify_id: spotify_id.to_string(),
+            }),
+        )
+    }
+
+    struct CreatePlaylistFixture {
+        client: SpotifyApiClient<MockAuth, MockUser, MockPlaylist, MockAlbum, MockSearch>,
+        auth: MockAuth,
+        create_calls: Arc<AtomicUsize>,
+        add_song_calls: Arc<AtomicUsize>,
+        added_songs: Arc<Mutex<Vec<(String, String)>>>,
+    }
+
+    fn create_playlist_fixture(
+        playlist_id: &str,
+        initial_access_token: &str,
+        create_requires_token: Option<&str>,
+        add_song_requires_token: Option<&str>,
+    ) -> CreatePlaylistFixture {
+        let auth = MockAuth::default();
+        let create_calls = Arc::new(AtomicUsize::new(0));
+        let add_song_calls = Arc::new(AtomicUsize::new(0));
+        let added_songs = Arc::new(Mutex::new(Vec::new()));
+
+        let create_gate = match create_requires_token {
+            Some(token) => TokenGate::requiring(auth.clone(), token, None, Arc::clone(&create_calls)),
+            None => TokenGate::open_with_counter(Arc::clone(&create_calls)),
+        };
+        let add_song_gate = match add_song_requires_token {
+            Some(token) => TokenGate::requiring(auth.clone(), token, None, Arc::clone(&add_song_calls)),
+            None => TokenGate::open_with_counter(Arc::clone(&add_song_calls)),
+        };
+        let playlist_svc = MockPlaylist::for_create_playlist(
+            playlist_id,
+            create_gate,
+            add_song_gate,
+            Arc::clone(&added_songs),
+        );
+
+        let (mock_user, _) = MockUser::new("user-1");
+        let mut client = SpotifyApiClient::with_services(
+            auth.clone(),
+            mock_user,
+            playlist_svc,
+            MockAlbum::ok(),
+            MockSearch::ok(),
+        );
+        client.restore_session(
+            "client-1".to_string(),
+            initial_access_token.to_string(),
+            "refresh-1".to_string(),
+        );
+
+        CreatePlaylistFixture {
+            client,
+            auth,
+            create_calls,
+            add_song_calls,
+            added_songs,
+        }
+    }
+
+    #[tokio::test]
+    async fn create_playlist_step2_401_refreshes_and_retries_without_duplicating_playlist() {
+        let fixture = create_playlist_fixture("pl-123", "expiring-access", None, Some("refreshed-1"));
+
+        let song = sample_spotify_song("track-42");
+        let playlist = fixture
+            .client
+            .create_playlist("Road Trip", true, Some(&song))
+            .await
+            .expect("create_playlist should recover from step-2 401");
+
+        assert_eq!(playlist.id_playlist(), "pl-123");
+        assert_eq!(playlist.playlist_name(), "Road Trip");
+        assert_eq!(playlist.songs(), &[song]);
+        assert_eq!(
+            fixture.create_calls.load(Ordering::SeqCst),
+            1,
+            "playlist creation must run exactly once to avoid duplicate empty playlists"
+        );
+        assert_eq!(fixture.auth.renew_calls(), 1);
+        assert_eq!(fixture.add_song_calls.load(Ordering::SeqCst), 2);
+        assert_eq!(
+            *fixture.added_songs.lock().unwrap(),
+            vec![("pl-123".to_string(), "track-42".to_string())]
+        );
+        assert_eq!(fixture.client.access_token().as_deref(), Some("refreshed-1"));
+    }
+
+    #[tokio::test]
+    async fn create_playlist_step1_401_refreshes_once_and_completes_both_steps() {
+        let fixture = create_playlist_fixture(
+            "pl-456",
+            "expired-access",
+            Some("refreshed-1"),
+            Some("refreshed-1"),
+        );
+
+        let song = sample_spotify_song("track-99");
+        let playlist = fixture
+            .client
+            .create_playlist("Chill Vibes", false, Some(&song))
+            .await
+            .expect("create_playlist should refresh on step-1 401 and complete both steps");
+
+        assert_eq!(playlist.id_playlist(), "pl-456");
+        assert_eq!(playlist.playlist_name(), "Chill Vibes");
+        assert_eq!(playlist.songs(), &[song]);
+        assert_eq!(fixture.create_calls.load(Ordering::SeqCst), 2);
+        assert_eq!(fixture.auth.renew_calls(), 1);
+        assert_eq!(fixture.add_song_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(
+            *fixture.added_songs.lock().unwrap(),
+            vec![("pl-456".to_string(), "track-99".to_string())]
+        );
+        assert_eq!(fixture.client.access_token().as_deref(), Some("refreshed-1"));
+    }
+
+    #[tokio::test]
+    async fn create_playlist_without_initial_song_skips_track_insertion() {
+        let fixture = create_playlist_fixture("pl-empty", "valid-access", None, None);
+
+        let playlist = fixture
+            .client
+            .create_playlist("Empty List", false, None)
+            .await
+            .expect("create_playlist without initial song should succeed");
+
+        assert_eq!(playlist.id_playlist(), "pl-empty");
+        assert_eq!(playlist.playlist_name(), "Empty List");
+        assert!(playlist.songs().is_empty());
+        assert_eq!(fixture.create_calls.load(Ordering::SeqCst), 1);
+        assert_eq!(fixture.add_song_calls.load(Ordering::SeqCst), 0);
+        assert_eq!(fixture.auth.renew_calls(), 0);
+        assert!(fixture.added_songs.lock().unwrap().is_empty());
     }
 }
