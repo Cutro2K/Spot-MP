@@ -117,18 +117,7 @@ impl ControllerHub {
                 self.auth_controller.erase_session();
                 act
             }
-            SpotifyAction::RenewToken => {
-                let sp = self.spotify_controller.read().await;
-                match sp.renew_token().await {
-                    Ok(_) => {
-                        let mut session = self.auth_controller.get_session();
-                        session.web_api = sp.tokens();
-                        self.auth_controller.save_session(session);
-                        Action::Spotify(SpotifyAction::LoggedIn)
-                    }
-                    Err(e) => Action::UnexpectedErrorHappened(e.to_string()),
-                }
-            }
+            SpotifyAction::RenewToken => Action::NoOp,
             SpotifyAction::FetchPlaylists => {
                 let mut sp = self.spotify_controller.write().await;
                 sp.fetch_playlists().await

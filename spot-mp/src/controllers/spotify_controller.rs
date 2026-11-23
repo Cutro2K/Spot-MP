@@ -69,10 +69,6 @@ impl SpotifyController {
         Action::Spotify(SpotifyAction::LoggedOut)
     }
 
-    pub async fn renew_token(&self) -> Result<(), SpotMpError> {
-        self.client.renew_token().await
-    }
-
     pub async fn fetch_playlists(&mut self) -> Action {
         if !self.logged_in {
             return Action::NoOp;

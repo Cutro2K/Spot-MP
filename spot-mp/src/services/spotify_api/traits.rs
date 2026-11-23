@@ -79,7 +79,7 @@ pub trait AuthManager {
     );
 
     fn logout(
-        &mut self
+        &self
     );
 
     fn clear_tokens(
@@ -93,6 +93,7 @@ pub trait AuthManager {
     fn access_token(&self) -> Option<String>;
     fn refresh_token(&self) -> Option<String>;
     fn client_id(&self) -> Option<String>;
+    fn session_epoch(&self) -> u64;
 }
 
 pub trait UserManager {

@@ -128,7 +128,7 @@ impl<B: BrowserOpener> AuthManager for AuthService<B> {
             .set_session(Some(client_id), Some(access_token), Some(refresh_token));
     }
 
-    fn logout(&mut self) {
+    fn logout(&self) {
         self.http.set_session(None, None, None);
     }
 
@@ -172,6 +172,10 @@ impl<B: BrowserOpener> AuthManager for AuthService<B> {
 
     fn client_id(&self) -> Option<String> {
         self.http.client_id()
+    }
+
+    fn session_epoch(&self) -> u64 {
+        self.http.session_epoch()
     }
 }
 
