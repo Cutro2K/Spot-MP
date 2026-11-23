@@ -8,8 +8,8 @@ use crate::{
 };
 
 
-const SPOTIFY_AUTH_URL: &str = "https://accounts.spotify.com/authorize";
-const SPOTIFY_TOKEN_URL: &str = "https://accounts.spotify.com/api/token";
+const SPOTIFY_AUTH_PATH: &str = "/authorize";
+const SPOTIFY_TOKEN_PATH: &str = "/api/token";
 
 
 
@@ -72,10 +72,8 @@ impl<B: BrowserOpener> AuthManager for AuthService<B> {
         auth_params.insert("code_challenge", code_challenge);
 
         // Setting up the url for the http call
-        let url = reqwest::Url::parse_with_params(
-            SPOTIFY_AUTH_URL, 
-            auth_params
-        )?;
+        let auth_url = self.http.accounts_url(SPOTIFY_AUTH_PATH);
+        let url = reqwest::Url::parse_with_params(&auth_url, auth_params)?;
         
 
         // Opening the browseer for login session
@@ -97,9 +95,10 @@ impl<B: BrowserOpener> AuthManager for AuthService<B> {
         params.insert("code_verifier", code_verifier);
         
         // Making an http call to get the token data.
+        let token_url = self.http.accounts_url(SPOTIFY_TOKEN_PATH);
         let token_data = self
             .http
-            .post(SPOTIFY_TOKEN_URL)
+            .post(&token_url)
             .without_auth()
             .form(&params)
             .send_json::<SpotifyTokenResponse>()
@@ -145,9 +144,10 @@ impl<B: BrowserOpener> AuthManager for AuthService<B> {
         params.insert("refresh_token", refresh_token.as_str());
         params.insert("client_id", client_id.as_str());
 
+        let token_url = self.http.accounts_url(SPOTIFY_TOKEN_PATH);
         let token_data = self
             .http
-            .post(SPOTIFY_TOKEN_URL)
+            .post(&token_url)
             .without_auth()
             .form(&params)
             .send_json::<SpotifyTokenResponse>()

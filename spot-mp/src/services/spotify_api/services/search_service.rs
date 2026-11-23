@@ -129,9 +129,10 @@ impl SearchManager for SearchService {
         &self,
         query: &str,
     ) -> Result<Vec<SpotifySearchResponse>, SpotMpError> {
+        let search_url = self.http.api_url("/v1/search");
         let response = self
             .http
-            .get("https://api.spotify.com/v1/search")
+            .get(&search_url)
             .query(&[
                 ("q", query),
                 ("type", "track,album,playlist"),

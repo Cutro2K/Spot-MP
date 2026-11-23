@@ -285,129 +285,31 @@ impl<C: SpotifyClient> ControllerHub<C> {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
     use tokio::sync::mpsc;
 
     use super::*;
     use crate::controllers::test_doubles::{
-        StubAlbum, StubAuth, StubPlaylist, StubSearch, StubUser,
+        StubAlbum, StubAuth, StubPlaylist, StubSearch, StubUser, TestHubHarness, seeded_session,
     };
     use crate::domain::{
-        audio_messages::{Event, Messages},
-        auth_models::{LibrespotData, SessionData, WebApiData},
+        audio_messages::Messages,
+        auth_models::{SessionData, WebApiData},
         spot_mp_errors::{SpotMpError, Status},
     };
-    use crate::services::data_storage::auth_storage::AuthStorage;
     use crate::services::spotify_api::spotify_api_client::SpotifyApiClient;
-
-    struct TempDirGuard {
-        path: PathBuf,
-    }
-
-    impl TempDirGuard {
-        fn new(name: &str) -> Self {
-            let path = std::env::temp_dir().join(format!(
-                "spot-mp-hub-test-{}-{}",
-                name,
-                uuid::Uuid::new_v4()
-            ));
-            std::fs::create_dir_all(&path).expect("create temp test dir");
-            Self { path }
-        }
-    }
-
-    impl Drop for TempDirGuard {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.path);
-        }
-    }
 
     type StubSpotifyApiClient =
         SpotifyApiClient<StubAuth, StubUser, StubPlaylist, StubAlbum, StubSearch>;
 
-    struct TestHubHarness {
-        hub: ControllerHub<StubSpotifyApiClient>,
-        dispatched_rx: mpsc::UnboundedReceiver<Action>,
-        audio_msg_rx: mpsc::UnboundedReceiver<Messages>,
-        _audio_evt_tx: mpsc::UnboundedSender<Event>,
-        _hub_in_tx: mpsc::UnboundedSender<Action>,
-        temp_dir: TempDirGuard,
-    }
-
-    impl TestHubHarness {
-        fn new(
-            name: &str,
-            initial_session: SessionData,
-            auth: StubAuth,
-            playlist: StubPlaylist,
-            search: StubSearch,
-        ) -> Self {
-            let temp_dir = TempDirGuard::new(name);
-            let storage = AuthStorage::new(temp_dir.path.clone());
-            storage
-                .save_session(initial_session.clone())
-                .expect("seed initial session.json");
-
-            let local_controller =
-                LocalController::with_config_folder(temp_dir.path.clone()).expect("local ctrl");
-            let auth_controller = AuthController::new(temp_dir.path.clone());
-
-            let client =
-                SpotifyApiClient::with_services(auth, StubUser, playlist, StubAlbum, search);
-            let mut spotify_controller = SpotifyController::with_client(client);
-            if let (Some(client_id), Some(web_api)) =
-                (initial_session.client_id, initial_session.web_api)
-            {
-                spotify_controller.restore_session(client_id, web_api);
-            }
-
-            let (audio_msg_tx, audio_msg_rx) = mpsc::unbounded_channel();
-            let (audio_evt_tx, audio_evt_rx) = mpsc::unbounded_channel();
-            let music_player_controller =
-                MusicPlayerController::with_channels(audio_msg_tx, audio_evt_rx);
-
-            let (hub_in_tx, hub_in_rx) = mpsc::unbounded_channel();
-            let (dispatched_tx, dispatched_rx) = mpsc::unbounded_channel();
-
-            let hub = ControllerHub::with_controllers(
-                hub_in_rx,
-                dispatched_tx,
-                local_controller,
-                spotify_controller,
-                music_player_controller,
-                auth_controller,
-            );
-
-            Self {
-                hub,
-                dispatched_rx,
-                audio_msg_rx,
-                _audio_evt_tx: audio_evt_tx,
-                _hub_in_tx: hub_in_tx,
-                temp_dir,
-            }
-        }
-
-        fn read_session_from_disk(&self) -> SessionData {
-            AuthStorage::new(self.temp_dir.path.clone())
-                .load_session()
-                .expect("load session.json from disk")
-        }
-    }
-
-    fn seeded_session() -> SessionData {
-        SessionData {
-            client_id: Some("client-123".to_string()),
-            web_api: Some(WebApiData {
-                access_token: "access-v1".to_string(),
-                refresh_token: "refresh-v1".to_string(),
-            }),
-            librespot: Some(LibrespotData {
-                device_id: "device-xyz".to_string(),
-                credentials: "creds-blob".to_string(),
-            }),
-        }
+    fn new_stub_hub_harness(
+        name: &str,
+        initial_session: SessionData,
+        auth: StubAuth,
+        playlist: StubPlaylist,
+        search: StubSearch,
+    ) -> TestHubHarness<StubSpotifyApiClient> {
+        let client = SpotifyApiClient::with_services(auth, StubUser, playlist, StubAlbum, search);
+        TestHubHarness::with_client(name, initial_session, client)
     }
 
     #[tokio::test]
@@ -433,7 +335,7 @@ mod tests {
         ]);
 
         let initial = seeded_session();
-        let mut harness = TestHubHarness::new(
+        let mut harness = new_stub_hub_harness(
             "rotated-tokens",
             initial.clone(),
             auth,
@@ -501,7 +403,7 @@ mod tests {
         let search = StubSearch::with_responses(vec![]);
 
         let initial = seeded_session();
-        let mut harness = TestHubHarness::new(
+        let mut harness = new_stub_hub_harness(
             "session-expired",
             initial.clone(),
             auth,
@@ -551,7 +453,7 @@ mod tests {
 
         let initial = seeded_session();
         let mut harness =
-            TestHubHarness::new("explicit-logout", initial, auth, playlist, search);
+            new_stub_hub_harness("explicit-logout", initial, auth, playlist, search);
 
         harness
             .hub

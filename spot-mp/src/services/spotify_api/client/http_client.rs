@@ -4,6 +4,41 @@ use reqwest::{Client};
 
 use crate::{domain::spot_mp_errors::{SpotMpError, Status}, services::spotify_api::client::request_builder::SpotifyRequestBuilder};
 
+pub const DEFAULT_ACCOUNTS_BASE_URL: &str = "https://accounts.spotify.com";
+pub const DEFAULT_API_BASE_URL: &str = "https://api.spotify.com";
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SpotifyEndpoints {
+    accounts_base_url: String,
+    api_base_url: String,
+}
+
+impl Default for SpotifyEndpoints {
+    fn default() -> Self {
+        Self::new(DEFAULT_ACCOUNTS_BASE_URL, DEFAULT_API_BASE_URL)
+    }
+}
+
+impl SpotifyEndpoints {
+    pub fn new(
+        accounts_base_url: impl Into<String>,
+        api_base_url: impl Into<String>,
+    ) -> Self {
+        Self {
+            accounts_base_url: accounts_base_url.into().trim_end_matches('/').to_string(),
+            api_base_url: api_base_url.into().trim_end_matches('/').to_string(),
+        }
+    }
+
+    pub fn accounts_url(&self, path: &str) -> String {
+        format!("{}/{}", self.accounts_base_url, path.trim_start_matches('/'))
+    }
+
+    pub fn api_url(&self, path: &str) -> String {
+        format!("{}/{}", self.api_base_url, path.trim_start_matches('/'))
+    }
+}
+
 // Shared Web API session and token state
 #[derive(Default)]
 pub struct TokenState {
@@ -17,14 +52,31 @@ pub struct TokenState {
 pub struct SpotifyHttpClient {
     client: Client,
     tokens: Arc<RwLock<TokenState>>,
+    endpoints: SpotifyEndpoints,
 }
 
 impl SpotifyHttpClient {
     pub fn new(tokens: Arc<RwLock<TokenState>>) -> Self {
+        Self::with_endpoints(tokens, SpotifyEndpoints::default())
+    }
+
+    pub fn with_endpoints(
+        tokens: Arc<RwLock<TokenState>>,
+        endpoints: SpotifyEndpoints,
+    ) -> Self {
         Self {
             client: Client::new(),
             tokens,
+            endpoints,
         }
+    }
+
+    pub fn accounts_url(&self, path: &str) -> String {
+        self.endpoints.accounts_url(path)
+    }
+
+    pub fn api_url(&self, path: &str) -> String {
+        self.endpoints.api_url(path)
     }
 
     // Centralized error mapping function for http results.
@@ -260,5 +312,39 @@ mod tests {
             http.snapshot_refresh_credentials(),
             Err(SpotMpError::SessionExpired(_))
         ));
+    }
+
+    #[test]
+    fn endpoints_default_to_spotify_production_urls_and_support_custom_bases() {
+        let default_http = new_http_client();
+        assert_eq!(
+            default_http.accounts_url("/authorize"),
+            "https://accounts.spotify.com/authorize"
+        );
+        assert_eq!(
+            default_http.accounts_url("/api/token"),
+            "https://accounts.spotify.com/api/token"
+        );
+        assert_eq!(
+            default_http.api_url("/v1/me"),
+            "https://api.spotify.com/v1/me"
+        );
+
+        let custom_endpoints = SpotifyEndpoints::new(
+            "http://127.0.0.1:4100/",
+            "http://127.0.0.1:4200/",
+        );
+        let custom_http = SpotifyHttpClient::with_endpoints(
+            Arc::new(RwLock::new(TokenState::default())),
+            custom_endpoints,
+        );
+        assert_eq!(
+            custom_http.accounts_url("/api/token"),
+            "http://127.0.0.1:4100/api/token"
+        );
+        assert_eq!(
+            custom_http.api_url("v1/me/albums?limit=10"),
+            "http://127.0.0.1:4200/v1/me/albums?limit=10"
+        );
     }
 }

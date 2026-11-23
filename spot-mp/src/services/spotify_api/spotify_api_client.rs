@@ -11,7 +11,7 @@ use crate::{
     },
     services::spotify_api::{
         auth::{auth_service::AuthService, oauth_config::OAuthConfig},
-        client::http_client::{SpotifyHttpClient, TokenState},
+        client::http_client::{SpotifyEndpoints, SpotifyHttpClient, TokenState},
         services::{
             album_service::AlbumService, playlist_service::PlaylistService,
             search_service::SearchService, user_service::UserService,
@@ -45,8 +45,12 @@ impl Default for SpotifyApiClient {
 
 impl SpotifyApiClient {
     pub fn new() -> Self {
+        Self::with_endpoints(SpotifyEndpoints::default())
+    }
+
+    pub fn with_endpoints(endpoints: SpotifyEndpoints) -> Self {
         let tokens = Arc::new(RwLock::new(TokenState::default()));
-        let http = SpotifyHttpClient::new(tokens);
+        let http = SpotifyHttpClient::with_endpoints(tokens, endpoints);
 
         Self {
             auth: AuthService::new(http.clone(), OAuthConfig::default()),

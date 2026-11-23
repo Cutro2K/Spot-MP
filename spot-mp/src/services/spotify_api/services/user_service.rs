@@ -25,9 +25,9 @@ impl UserManager for UserService {
         if let Some(uid) = self.user_id() {
             return Ok(uid);
         }
-        let url = "https://api.spotify.com/v1/me";
+        let url = self.http.api_url("/v1/me");
 
-        let response = self.http.get(url).send_json::<UserProfileResponse>().await?;
+        let response = self.http.get(&url).send_json::<UserProfileResponse>().await?;
 
         *self.id.write().unwrap() = Some(response.id.clone());
         Ok(response.id)

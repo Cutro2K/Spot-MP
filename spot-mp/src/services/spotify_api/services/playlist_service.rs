@@ -22,7 +22,7 @@ impl PlaylistManager for PlaylistService {
         playlist_name: &str,
         public: bool,
     ) -> Result<Playlist, SpotMpError> {
-        let url = "https://api.spotify.com/v1/me/playlists";
+        let url = self.http.api_url("/v1/me/playlists");
 
         let body = json!({
             "name": playlist_name,
@@ -31,7 +31,7 @@ impl PlaylistManager for PlaylistService {
 
         let playlist_data = self
             .http
-            .post(url)
+            .post(&url)
             .json(&body)
             .send_json::<PlaylistItem>()
             .await?;
@@ -53,10 +53,9 @@ impl PlaylistManager for PlaylistService {
         song_id: &str
     ) -> Result<(), SpotMpError>
     {
-        let url = format!(
-            "https://api.spotify.com/v1/playlists/{}/items", 
-            playlist_id
-        );
+        let url = self
+            .http
+            .api_url(&format!("/v1/playlists/{}/items", playlist_id));
 
         let track_uri = if song_id.starts_with("spotify:track:") {
             song_id.to_string()
@@ -77,10 +76,9 @@ impl PlaylistManager for PlaylistService {
         song_id: &str,
     ) -> Result<(), SpotMpError>
     {
-        let url = format!(
-            "https://api.spotify.com/v1/playlists/{}/items", 
-            playlist_id
-        );
+        let url = self
+            .http
+            .api_url(&format!("/v1/playlists/{}/items", playlist_id));
 
         let track_uri = if song_id.starts_with("spotify:track:") {
             song_id.to_string()
@@ -103,7 +101,7 @@ impl PlaylistManager for PlaylistService {
         playlist_id: &str
     ) -> Result<(), SpotMpError>
     {
-        let url = "https://api.spotify.com/v1/me/library";
+        let url = self.http.api_url("/v1/me/library");
 
         let uri = if playlist_id.starts_with("spotify:playlist:") {
             playlist_id.to_string()
@@ -112,7 +110,7 @@ impl PlaylistManager for PlaylistService {
         };
 
         self.http
-            .delete(url)
+            .delete(&url)
             .query(&[("uris", &uri)])
             .send_empty()
             .await
@@ -124,10 +122,10 @@ impl PlaylistManager for PlaylistService {
     ) -> Result<Vec<Song>, SpotMpError>
     {
         let mut result: Vec<Song> = Vec::new();
-        let mut next_url = Some(format!(
-            "https://api.spotify.com/v1/playlists/{}/items?limit=50",
-            playlist_id
-        ));
+        let mut next_url = Some(
+            self.http
+                .api_url(&format!("/v1/playlists/{}/items?limit=50", playlist_id)),
+        );
 
         while let Some(url) = next_url {
             let response = self.http.get(&url).send_json::<GetPlaylistSongsResponse>().await?;
@@ -174,7 +172,7 @@ impl PlaylistManager for PlaylistService {
     ) -> Result<Vec<Playlist>, SpotMpError>
     {
         let mut result: Vec<Playlist> = Vec::new();
-        let mut next_url = Some("https://api.spotify.com/v1/me/playlists?limit=10".to_string());
+        let mut next_url = Some(self.http.api_url("/v1/me/playlists?limit=10"));
 
         while let Some(url) = next_url {
             let playlist_response = self.http.get(&url).send_json::<GetUserPlaylistsResponse>().await?;

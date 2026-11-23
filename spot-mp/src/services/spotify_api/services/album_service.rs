@@ -24,10 +24,10 @@ impl AlbumManager for AlbumService {
     ) -> Result<Vec<Song>, SpotMpError>
     {
         let mut result: Vec<Song> = Vec::new();
-        let mut next_url = Some(format!(
-            "https://api.spotify.com/v1/albums/{}/tracks?limit=50",
-            album_id
-        ));
+        let mut next_url = Some(
+            self.http
+                .api_url(&format!("/v1/albums/{}/tracks?limit=50", album_id)),
+        );
 
         while let Some(url) = next_url {
             let response = self.http.get(&url).send_json::<GetAlbumSongsResponse>().await?;
@@ -57,7 +57,7 @@ impl AlbumManager for AlbumService {
     ) -> Result<Vec<Album>, SpotMpError>
     {
         let mut result: Vec<Album> = Vec::new();
-        let mut next_url = Some("https://api.spotify.com/v1/me/albums?limit=10".to_string());
+        let mut next_url = Some(self.http.api_url("/v1/me/albums?limit=10"));
 
         while let Some(url) = next_url {
             let album_response = self.http.get(&url).send_json::<GetUserAlbumsRespose>().await?;
@@ -111,7 +111,7 @@ impl AlbumManager for AlbumService {
         album_id: &str
     ) -> Result<(), SpotMpError>
     {
-        let url = "https://api.spotify.com/v1/me/library";
+        let url = self.http.api_url("/v1/me/library");
 
         let uri = if album_id.starts_with("spotify:album:") {
             album_id.to_string()
@@ -120,7 +120,7 @@ impl AlbumManager for AlbumService {
         };
         
         self.http
-            .delete(url)
+            .delete(&url)
             .query(&[("uris", &uri)])
             .send_empty()
             .await
